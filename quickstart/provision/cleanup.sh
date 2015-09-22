@@ -1,6 +1,6 @@
 #!/bin/bash
 
 sudo yum remove -y gcc
-sudo yum autoremove
-sudo yum clean all
+sudo yum autoremove -y
+sudo yum clean -y all
 sudo rm -rf /tmp/*
