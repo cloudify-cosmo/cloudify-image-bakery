@@ -1,0 +1,49 @@
+{
+  "variables": {
+    "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
+    "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
+    "aws_source_ami": "ami-96a818fe"
+  },
+  "builders": [
+    {
+      "name": "amazon",
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "us-east-1",
+      "source_ami": "{{user `aws_source_ami`}}",
+      "instance_type": "m3.medium",
+      "ssh_username": "centos",
+      "user_data_file": "userdata/disable_requiretty.sh",
+      "ami_name": "cloudify marketplace {{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "provision/disable_selinux.sh"
+    },
+    {
+      "type": "file",
+      "source": "resources/update-cloudify-env.service",
+      "destination": "/tmp/update-cloudify-env.service"
+    },
+    {
+      "type": "shell",
+      "inline": ["sudo mv /tmp/update-cloudify-env.service /etc/systemd/system/; sudo systemctl enable update-cloudify-env.service"]
+    },
+    {
+      "type": "file",
+      "source": "blueprint",
+      "destination": "~"
+    },
+    {
+      "type": "shell",
+      "script": "provision/bootstrap_simple.sh"
+    },
+    {
+      "type": "shell",
+      "inline": ["cd blueprint; ../cloudify/bin/cfy init; ../cloudify/bin/cfy use -t 127.0.0.1; ../cloudify/bin/cfy blueprints upload -p configure.yaml -b CloudifySettings"]
+    }
+  ]
+}
