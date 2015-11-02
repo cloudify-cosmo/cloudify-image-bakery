@@ -73,7 +73,7 @@ function configure_manager_blueprint_inputs
 	echo "public_ip: '127.0.0.1'" >> inputs.yaml
 	echo "private_ip: '127.0.0.1'" >> inputs.yaml
 	echo "ssh_user: '${USERNAME}'" >> inputs.yaml
-	echo "ssh_key_filename: '~/.ssh/id_rsa'" >> inputs.yaml
+	echo "ssh_key_filename: '/home/${USERNAME}/.ssh/id_rsa'" >> inputs.yaml
 }
 
 function bootstrap
