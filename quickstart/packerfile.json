@@ -57,6 +57,11 @@
     },
     {
       "type": "shell",
+      "inline": ["sudo reboot"],
+      "only": ["nightly_virtualbox_build"]
+    },
+    {
+      "type": "shell",
       "script": "provision/common.sh"
     },
     {
