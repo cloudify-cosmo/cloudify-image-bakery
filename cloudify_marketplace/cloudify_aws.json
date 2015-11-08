@@ -43,7 +43,11 @@
     },
     {
       "type": "shell",
-      "inline": ["cd blueprint; ../cloudify/bin/cfy init; ../cloudify/bin/cfy use -t 127.0.0.1; ../cloudify/bin/cfy blueprints upload -p configure.yaml -b CloudifySettings"]
+      "inline": ["cd blueprint; ../cfy/bin/cfy init; ../cfy/bin/cfy use -t 127.0.0.1; ../cfy/bin/cfy blueprints upload -p configure.yaml -b CloudifySettings"]
+    },
+    {
+      "type": "shell",
+      "script": "provision/cleanup.sh"
     }
   ]
 }
