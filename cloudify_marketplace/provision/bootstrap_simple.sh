@@ -1,91 +1,78 @@
-#!/usr/bin/env bash
-
+#!/bin/bash
 
 function install_prereqs
 {
-	echo installing prerequisites
-	sudo yum install -y git gcc python-devel
+  echo installing prerequisites
+  [[ $EUID -ne 0 ]] && SUDO=$(which sudo) || SUDO=""
+
+  $SUDO yum install -y git gcc python-devel
+  curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | $SUDO python
+  $SUDO pip install virtualenv
 }
 
-function install_pip
+function create_virtualenv
 {
-	curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo python
-}
-
-function create_and_source_virtualenv
-{
-	cd ~
-	echo installing virtualenv
-	sudo pip install virtualenv
-	echo creating cloudify virtualenv
-	virtualenv cloudify
-	source cloudify/bin/activate
+  echo creating cloudify virtualenv
+  virtualenv $CFY_VENV
 }
 
 function install_cli
 {
-	pip install https://github.com/cloudify-cosmo/cloudify-cli/archive/${CORE_TAG_NAME}.zip \
-	  -r https://raw.githubusercontent.com/cloudify-cosmo/cloudify-cli/${CORE_TAG_NAME}/dev-requirements.txt
-
+  $CFY_VENV/bin/pip install https://github.com/cloudify-cosmo/cloudify-cli/archive/$CORE_TAG_NAME.zip \
+    -r https://raw.githubusercontent.com/cloudify-cosmo/cloudify-cli/$CORE_TAG_NAME/dev-requirements.txt
 }
 
 function init_cfy_workdir
 {
-	cd ~
-	mkdir -p cloudify
-	cd cloudify
-	cfy init
+  mkdir -p $CFY_ENV
+  pushd $CFY_ENV
+  $CFY_VENV/bin/cfy init
+  popd
 }
 
 function get_manager_blueprints
 {
-    cd ~/cloudify
-	echo "Retrieving Manager Blueprints"
-    sudo curl -OL https://github.com/cloudify-cosmo/cloudify-manager-blueprints/archive/${CORE_TAG_NAME}.tar.gz &&
-    sudo tar -zxvf ${CORE_TAG_NAME}.tar.gz &&
-    mv cloudify-manager-blueprints-*/ cloudify-manager-blueprints
-    sudo rm ${CORE_TAG_NAME}.tar.gz
+  echo "Retrieving Manager Blueprints"
+  mkdir -p $CFY_ENV/cloudify-manager-blueprints
+  dest=$(mktemp --suffix=.tar.gz)
+  curl --fail -L https://github.com/cloudify-cosmo/cloudify-manager-blueprints/archive/$CORE_TAG_NAME.tar.gz -o $dest
+  tar -zxf $dest -C $CFY_ENV/cloudify-manager-blueprints --strip-components=1
 }
 
 function generate_keys
 {
-	# generate public/private key pair and add to authorized_keys
-	ssh-keygen -t rsa -f ~/.ssh/id_rsa -q -N ''
-	cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-
-}
-
-function configure_manager_blueprint_inputs
-{
-	# configure inputs
-	echo "public_ip: '127.0.0.1'" >> inputs.yaml
-	echo "private_ip: '127.0.0.1'" >> inputs.yaml
-	echo "ssh_user: '$(id -u -n)'" >> inputs.yaml
-	echo "ssh_key_filename: '~/.ssh/id_rsa'" >> inputs.yaml
+  # generate public/private key pair and add to authorized_keys
+  ssh-keygen -t rsa -f ~/.ssh/id_rsa -q -N ''
+  cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 }
 
 function bootstrap
 {
-	cd ~/cloudify
-	echo "bootstrapping..."
-	# bootstrap the manager locally
-	cfy bootstrap -v -p cloudify-manager-blueprints/new/simple-manager-blueprint.yaml -i inputs.yaml --install-plugins
-	if [ "$?" -ne "0" ]; then
-	  echo "Bootstrap failed, stoping provision."
-	  exit 1
-	fi
-	echo "bootstrap done."
+  pushd $CFY_ENV
+  echo "bootstrapping..."
+  # bootstrap the manager locally
+  PATH=$CFY_VENV/bin:PATH $CFY_VENV/bin/cfy bootstrap -v --install-plugins \
+      -p cloudify-manager-blueprints/new/simple-manager-blueprint.yaml \
+      -i "public_ip=127.0.0.1; \
+          private_ip=127.0.0.1; \
+          ssh_user=${USER}; \
+          ssh_key_filename=/home/${USER}/.ssh/id_rsa"
+  if [ "$?" -ne "0" ]; then
+    echo "Bootstrap failed, stoping provision."
+    exit 1
+  fi
+  echo "bootstrap done."
+  popd
 }
 
-
-CORE_TAG_NAME="3.3m6"
+CFY_VENV="$HOME/cfy"
+CFY_ENV="$HOME/cloudify"
+CORE_TAG_NAME="master"
 
 install_prereqs
-install_pip
-create_and_source_virtualenv
+create_virtualenv
 install_cli
 init_cfy_workdir
 get_manager_blueprints
 generate_keys
-configure_manager_blueprint_inputs
 bootstrap
