@@ -52,7 +52,7 @@ function bootstrap
   echo "bootstrapping..."
   # bootstrap the manager locally
   PATH=$CFY_VENV/bin:PATH $CFY_VENV/bin/cfy bootstrap -v --install-plugins \
-      -p cloudify-manager-blueprints/new/simple-manager-blueprint.yaml \
+      -p cloudify-manager-blueprints/simple-manager-blueprint.yaml \
       -i "public_ip=127.0.0.1; \
           private_ip=127.0.0.1; \
           ssh_user=${USER}; \
@@ -67,7 +67,10 @@ function bootstrap
 
 CFY_VENV="$HOME/cfy"
 CFY_ENV="$HOME/cloudify"
-CORE_TAG_NAME="master"
+if [ -z "$CORE_TAG_NAME" ]; then
+  echo "### Building from master branch ###"
+  CORE_TAG_NAME="master"
+fi
 
 install_prereqs
 create_virtualenv

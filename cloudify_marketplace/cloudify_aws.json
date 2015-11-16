@@ -2,7 +2,8 @@
   "variables": {
     "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
     "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
-    "aws_source_ami": "ami-96a818fe"
+    "aws_source_ami": "ami-96a818fe",
+    "cloudify_version": "{{user `cloudify_version`}}"
   },
   "builders": [
     {
@@ -39,6 +40,7 @@
     },
     {
       "type": "shell",
+      "environment_vars": "CORE_TAG_NAME={{user `cloudify_version`}}",
       "script": "provision/bootstrap_simple.sh"
     },
     {
