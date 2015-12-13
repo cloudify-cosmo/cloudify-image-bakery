@@ -2,7 +2,7 @@
   "variables": {
     "aws_access_key": "{{env `AWS_ACCESS_KEY_ID`}}",
     "aws_secret_key": "{{env `AWS_SECRET_ACCESS_KEY`}}",
-    "aws_source_ami": "ami-96a818fe",
+    "aws_source_ami": "ami-91feb7fb",
     "cloudify_version": "{{user `cloudify_version`}}"
   },
   "builders": [
@@ -23,6 +23,10 @@
     {
       "type": "shell",
       "script": "provision/disable_selinux.sh"
+    },
+    {
+      "type": "shell",
+      "inline": ["sudo hostnamectl set-hostname cloudify; echo preserve_hostname: True | sudo tee /etc/cloud/cloud.cfg.d/99_hostname.cfg"]
     },
     {
       "type": "file",
