@@ -9,6 +9,7 @@
 
 1. Packer 0.8.6+ (Older versions were not tested)
 
-## Copying AMI to different regions (manually right now)
+## Copying AMI to different regions (manually)
 
-1. Install aws-cli and run: `aws ec2 copy-image --source-image-id <source_ami> --source-region <region> --region <dest_region> --name "Cloudify <version> Release"`
+1. Copy: `aws ec2 copy-image --source-image-id <source_ami> --source-region <region> --region <dest_region> --name "Cloudify <version> Release"`
+2. Make public: `aws ec2 modify-image-attribute --image-id <image_id> --region <image_region> --launch-permission "{\"Add\":[{\"Group\":\"all\"}]}"`
