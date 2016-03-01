@@ -1,0 +1,13 @@
+plugins:
+  aws_dependencies:
+    executor: central_deployment_agent
+    source: aws_dependencies
+
+node_types:
+  cloudify.aws_dependencies.Install:
+    derived_from: cloudify.nodes.Root
+    # These interfaces are needed to force installation of the plugins
+    interfaces:
+      force_install_neutron_ignore_this:
+        install:
+          implementation: aws_dependencies.boto

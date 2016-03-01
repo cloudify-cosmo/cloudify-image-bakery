@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+CFY_BIN=~/cfy/bin/cfy
+cd ${BLUEPRINT_PATH}
+
+# Inject the correct username
+sudo sed -i "s/<<IMAGEBUILDERUSER>>/$(whoami)/" scripts/configure.py
+
+# Initialise the env and upload the blueprint
+${CFY_BIN} init
+${CFY_BIN} use -t 127.0.0.1
+${CFY_BIN} blueprints upload -p ${BLUEPRINT_FILE_NAME_PREFIX}_${PACKER_BUILD_NAME}.yaml -b ${BLUEPRINT_NAME}
+
+# Jump back to the home directory and clean up
+cd
+sudo rm -rf ${BLUEPRINT_PATH}

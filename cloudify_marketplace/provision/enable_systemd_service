@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+DEST=/etc/systemd/system/${SERVICE_NAME}
+sudo mv /tmp/${SERVICE_NAME} ${DEST}
+sudo chown root. ${DEST}
+sudo systemctl enable ${SERVICE_NAME}

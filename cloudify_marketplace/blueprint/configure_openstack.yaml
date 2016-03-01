@@ -1,0 +1,102 @@
+tosca_definitions_version: cloudify_dsl_1_2
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.4m5/types.yaml
+  - dependencies/openstack_dependencies.yaml
+
+inputs:
+
+  user_ssh_key:
+    type: string
+    default: ''
+    description: >
+      SSH key to authorize for access to the image builder user account.
+
+  agents_security_group_name:
+    type: string
+    default: cloudify-agents-security-group
+    description: >
+      Security group to be generated and used for accessing agents on VMs.
+
+  agents_keypair_name:
+    type: string
+    default: cloudify-agents-keypair
+    description: >
+      Keypair to be generated and used for accessing agents on VMs.
+
+  agents_user:
+    type: string
+    default: centos
+    description: >
+      User to be used for accessing agents on VMs.
+
+  openstack_username:
+    type: string
+    description: >
+      Username to use when accessing openstack API.
+
+  openstack_password:
+    type: string
+    description: >
+      Password to use when accessing openstack API.
+
+  openstack_auth_url:
+    type: string
+    description: >
+      Authentication URL to use when accessing openstack API.
+      e.g. http://myopenstack:5000/
+
+  openstack_tenant_name:
+    type: string
+    description: >
+      Tenant name to use when accessing openstack API.
+
+  openstack_region:
+    type: string
+    description: >
+      Region to use when accessing openstack API.
+
+  agents_to_manager_inbound_ports:
+    type: string
+    description: >
+      Comma separated list of tcp ports to allow from the agents
+      to the manager.
+    default: 5672,8101,53229
+
+node_templates:
+
+  general_configuration:
+    type: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/configure.py
+          executor: central_deployment_agent
+          inputs:
+            user_ssh_key: { get_input: user_ssh_key }
+
+# TODO: Split this out and composite the general config part
+  openstack_configuration:
+    type: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/configure_openstack.py
+          executor: central_deployment_agent
+          inputs:
+            agents_security_group_name: { get_input: agents_security_group_name }
+            agents_keypair_name: { get_input: agents_keypair_name }
+            agents_user: { get_input: agents_user }
+            openstack_username: { get_input: openstack_username }
+            openstack_password: { get_input: openstack_password }
+            openstack_auth_url: { get_input: openstack_auth_url }
+            openstack_tenant_name: { get_input: openstack_tenant_name }
+            openstack_region: { get_input: openstack_region }
+            agents_to_manager_inbound_ports: { get_input: agents_to_manager_inbound_ports }
+    relationships:
+      - type: cloudify.relationships.depends_on
+        target: general_configuration
+
+  # This is a workaround for cloudify not installing the required dependencies without a node that 'uses' them
+  dependencies_install:
+    type: cloudify.openstack_dependencies.Install

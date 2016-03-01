@@ -1,0 +1,5 @@
+#! /usr/bin/env bash
+DEST=/usr/local/bin/${SCRIPT_NAME}
+sudo mv /tmp/${SCRIPT_NAME} ${DEST}
+sudo chown root. ${DEST}
+sudo chmod 555 ${DEST}

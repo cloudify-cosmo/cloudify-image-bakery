@@ -3,11 +3,10 @@
 function install_prereqs
 {
   echo installing prerequisites
-  [[ $EUID -ne 0 ]] && SUDO=$(which sudo) || SUDO=""
 
-  $SUDO yum install -y git gcc python-devel
-  curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | $SUDO python
-  $SUDO pip install virtualenv
+  sudo yum install -y git gcc python-devel
+  curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo python
+  sudo pip install virtualenv
 }
 
 function create_virtualenv

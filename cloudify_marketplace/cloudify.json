@@ -1,0 +1,139 @@
+{
+  "variables": {
+    "name_prefix": "cloudify marketplace",
+    "aws_ssh_username": "centos",
+    "aws_access_key": "AWS ACCESS KEY NOT PROVIDED",
+    "aws_secret_key": "AWS SECRET KEY NOT PROVIDED",
+    "aws_source_ami": "AWS SOURCE AMI NOT PROVIDED",
+    "aws_region": "us-east-1",
+    "aws_instance_type": "m3.large",
+    "openstack_ssh_username": "centos",
+    "openstack_ssh_keypair_name": "SSH KEYPAIR NOT SET",
+    "openstack_availability_zone": "AVAILABILITY ZONE NOT SET",
+    "openstack_image_flavor": "IMAGE FLAVOR NOT SET",
+    "openstack_identity_endpoint": "IDENTITY ENDPOINT NOT SET",
+    "openstack_source_image_id": "IMAGE ID NOT SET",
+    "openstack_username": "OPENSTACK USERNAME NOT SET",
+    "openstack_password": "OPENSTACK PASSWORD NOT SET",
+    "openstack_tenant_name": "OPENSTACK TENANT NOT SET",
+    "openstack_floating_ip_pool_name": "OPENSTACK FLOATING IP POOL NAME NOT SET",
+    "openstack_network": "OPENSTACK NETWORK NOT SET",
+    "openstack_security_group": "OPENSTACK SECURITY GROUP NOT SET",
+    "vsphere_vm_ip_address": "VSPHERE VM IP NOT SET",
+    "vsphere_vm_ssh_username": "centos",
+    "vsphere_vm_ssh_password": "VSPHERE VM SSH PASSWORD NOT SET",
+    "cloudify_version": "{{user `cloudify_version`}}"
+  },
+  "builders": [
+    {
+      "name": "aws",
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `aws_region`}}",
+      "source_ami": "{{user `aws_source_ami`}}",
+      "instance_type": "{{user `aws_instance_type`}}",
+      "ssh_username": "{{user `aws_ssh_username`}}",
+      "ssh_pty": "true",
+      "ami_name": "{{user `name_prefix`}} {{timestamp}}"
+    },
+    {
+      "name": "openstack",
+      "type": "openstack",
+      "ssh_username": "{{user `openstack_ssh_username`}}",
+      "ssh_pty": "true",
+      "ssh_keypair_name": "{{user `openstack_ssh_keypair_name`}}",
+      "availability_zone": "{{user `openstack_availability_zone`}}",
+      "flavor": "{{user `openstack_image_flavor`}}",
+      "identity_endpoint": "{{user `openstack_identity_endpoint`}}",
+      "source_image": "{{user `openstack_source_image_id`}}",
+      "username": "{{user `openstack_username`}}",
+      "password": "{{user `openstack_password`}}",
+      "tenant_name": "{{user `openstack_tenant_name`}}",
+      "floating_ip_pool": "{{user `openstack_floating_ip_pool_name`}}",
+      "networks": ["{{user `openstack_network`}}"],
+      "security_groups": ["{{user `openstack_security_group`}}"],
+      "image_name": "{{user `name_prefix`}} {{timestamp}}"
+    },
+    {
+      "name": "vsphere",
+      "type": "null",
+      "ssh_pty": "true",
+      "ssh_host": "{{user `vsphere_vm_ip_address`}}",
+      "ssh_username": "{{user `vsphere_vm_ssh_username`}}",
+      "ssh_password": "{{user `vsphere_vm_ssh_password`}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell-local",
+      "command": "provision_local/make_dependencies"
+    },
+    {
+      "type": "shell",
+      "script": "provision/os_configure"
+    },
+    {
+      "type": "file",
+      "source": "resources/get_first_external_ip",
+      "destination": "/tmp/get_first_external_ip"
+    },
+    {
+      "type": "shell",
+      "script": "provision/enable_usr_local_script",
+      "environment_vars": "SCRIPT_NAME=get_first_external_ip"
+    },
+    {
+      "type": "file",
+      "source": "resources/fix_cloudify_ip_configurations",
+      "destination": "/tmp/fix_cloudify_ip_configurations"
+    },
+    {
+      "type": "shell",
+      "script": "provision/enable_usr_local_script",
+      "environment_vars": "SCRIPT_NAME=fix_cloudify_ip_configurations"
+    },
+    {
+      "type": "file",
+      "source": "resources/update-cloudify-env.service",
+      "destination": "/tmp/update-cloudify-env.service"
+    },
+    {
+      "type": "shell",
+      "script": "provision/enable_systemd_service",
+      "environment_vars": "SERVICE_NAME=update-cloudify-env.service"
+    },
+    {
+      "type": "file",
+      "source": "blueprint",
+      "destination": "/tmp/blueprint_configure"
+    },
+    {
+      "type": "shell",
+      "environment_vars": "CORE_TAG_NAME={{user `cloudify_version`}}",
+      "script": "provision/bootstrap_simple"
+    },
+    {
+      "type": "shell",
+      "script": "provision/upload_blueprint",
+      "environment_vars": [
+        "BLUEPRINT_PATH=/tmp/blueprint_configure",
+        "BLUEPRINT_FILE_NAME_PREFIX=configure",
+        "BLUEPRINT_NAME=CloudifySettings"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "blueprint/plugins",
+      "destination": "/tmp/dependencies"
+    },
+    {
+      "type": "shell",
+      "script": "provision/install_dependencies"
+    },
+    {
+      "type": "shell",
+      "script": "provision/cleanup"
+    }
+  ]
+}

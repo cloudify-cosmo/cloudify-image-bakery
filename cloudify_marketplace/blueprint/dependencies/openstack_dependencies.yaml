@@ -1,0 +1,16 @@
+plugins:
+  openstack_dependencies:
+    executor: central_deployment_agent
+    source: openstack_dependencies
+
+node_types:
+  cloudify.openstack_dependencies.Install:
+    derived_from: cloudify.nodes.Root
+  # These interfaces are needed to force installation of the plugins
+    interfaces:
+      force_install_neutron_ignore_this:
+        install:
+          implementation: openstack_dependencies.neutronclient.v2_0.client
+      force_install_neutron_ignore_this:
+        install:
+          implementation: openstack_dependencies.novaclient.v2.client
