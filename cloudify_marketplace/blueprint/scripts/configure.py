@@ -58,7 +58,7 @@ def create_agent_sg(sg_name):
     sg.authorize('tcp', 5985, 5985, src_group=manager_sg)
 
     # authorize from agent to manager
-    manager_sg.authorize(src_group=sg)
+    manager_sg.authorize('tcp', 0, 65535, src_group=sg)
 
     return sg.id
 
