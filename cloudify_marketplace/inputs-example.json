@@ -1,6 +1,11 @@
 {
   "name_prefix": "cloudify marketplace",
-  "cloudify_version": "VERSION OF CLOUDIFY, E.G. 3.3",
+  "cloudify_version": "VERSION/BRANCH OF CLOUDIFY MANAGER+CLI, E.G. 3.3 OR master",
+  "cloudify_manager_username": "RECOMMENDED (DEFAULT: cloudify): USERNAME TO USE ON CLOUDIFY MANAGER",
+  "cloudify_manager_password": "RECOMMENDED (DEFAULT: cloudify): PASSWORD TO USE ON CLOUDIFY MANAGER",
+  "cloudify_broker_username": "RECOMMENDED (DEFAULT: cloudify): USERNAME TO USE ON CLOUDIFY BROKER",
+  "cloudify_broker_password": "RECOMMENDED (DEFAULT: cloudify): PASSWORD TO USE ON CLOUDIFY BROKER",
+  "cloudify_manager_security_enabled": "OPTIONAL (DEFAULT: true): true TO ENABLE SSL AND AUTHENTICATION, false TO DISABLE THESE",
 
   "aws_ssh_username": "centos",
   "aws_access_key": "YOUR AWS ACCESS KEY",
@@ -20,7 +25,7 @@
   "openstack_network": "OPENSTACK NETWORK ID",
   "openstack_security_group": "OPENSTACK SECURITY GROUP ID",
 
-  "vsphere_vm_ip_address": "IP OF VSPHERE VM FOR SSH",
-  "vsphere_vm_ssh_username": "USERNAME FOR VSPHERE VM",
-  "vsphere_vm_ssh_password": "PASSWORD FOR VSPHERE VM"
+  "vsphere_vm_ip_address": "REQUIRED FOR VSPHERE: IP OF VSPHERE VM FOR SSH",
+  "vsphere_vm_ssh_username": "REQUIRED FOR VSPHERE: USERNAME FOR VSPHERE VM",
+  "vsphere_vm_ssh_password": "REQUIRED FOR VSPHERE: PASSWORD FOR VSPHERE VM"
 }
