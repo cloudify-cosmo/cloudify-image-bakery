@@ -1,0 +1,13 @@
+plugins:
+  vsphere_dependencies:
+    executor: central_deployment_agent
+    source: vsphere_dependencies
+
+node_types:
+  cloudify.vsphere_dependencies.Install:
+    derived_from: cloudify.nodes.Root
+    # These interfaces are needed to force installation of the plugins
+    interfaces:
+      force_install_yaml_ignore_this:
+        install:
+          implementation: vsphere_dependencies.yaml

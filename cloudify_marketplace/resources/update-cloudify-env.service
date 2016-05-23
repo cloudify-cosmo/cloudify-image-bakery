@@ -1,11 +1,11 @@
 [Unit]
 Description=Update Cloudify settings under AWS environment
-Before=cloudify-mgmtworker.service
+Before=cloudify-mgmtworker.service cloudify-amqpinflux cloudify-riemann logstash cloudify-rest cloudify-webui
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/sh -c '/usr/bin/sed -i -e "s/MANAGEMENT_IP=.*/MANAGEMENT_IP=\\"$(/usr/bin/curl --silent http://169.254.169.254/latest/meta-data/local-ipv4)\\"/" /etc/sysconfig/cloudify-mgmtworker'
+ExecStart=/usr/local/bin/fix_cloudify_ip_configurations
 
 [Install]
 WantedBy=multi-user.target
