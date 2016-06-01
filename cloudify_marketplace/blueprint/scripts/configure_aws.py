@@ -1,3 +1,4 @@
+import base64
 import os
 import urllib2
 from ConfigParser import ConfigParser
@@ -8,6 +9,18 @@ from cloudify.state import ctx_parameters as inputs
 
 
 BOTO_CONF = os.path.expanduser('~/.boto')
+
+
+def get_auth_header(username, password):
+    header = None
+
+    if username and password:
+        credentials = '{0}:{1}'.format(username, password)
+        header = {
+            'Authorization':
+            'Basic' + ' ' + base64.urlsafe_b64encode(credentials)}
+
+    return header
 
 
 def get_manager_instance(conn):
@@ -96,7 +109,22 @@ def create_keypair(conn, path, kp_name):
 
 
 def update_context(agent_sg_id, agent_kp_id, agent_pk_path, agent_user):
-    c = CloudifyClient()
+    security_enabled = os.path.exists(
+        '/root/.cloudify_image_security_enabled'
+    )
+    if security_enabled:
+        auth_header = get_auth_header('cloudify', 'cloudify')
+        cert_path = '/root/cloudify/server.crt'
+        c = CloudifyClient(
+            headers=auth_header,
+            cert=cert_path,
+            trust_all=False,
+            port=443,
+            protocol='https',
+        )
+    else:
+        c = CloudifyClient()
+
     name = c.manager.get_context()['name']
     context = c.manager.get_context()['context']
     context['cloudify']['cloudify_agent']['agent_key_path'] = agent_pk_path

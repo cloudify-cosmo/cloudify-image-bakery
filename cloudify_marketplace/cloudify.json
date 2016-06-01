@@ -22,7 +22,13 @@
     "vsphere_vm_ip_address": "VSPHERE VM IP NOT SET",
     "vsphere_vm_ssh_username": "centos",
     "vsphere_vm_ssh_password": "VSPHERE VM SSH PASSWORD NOT SET",
-    "cloudify_version": "{{user `cloudify_version`}}"
+    "cloudify_manager_username": "cloudify",
+    "cloudify_manager_password": "cloudify",
+    "cloudify_broker_username": "cloudify",
+    "cloudify_broker_password": "cloudify",
+    "cloudify_manager_security_enabled": "true",
+    "cloudify_version": "{{user `cloudify_version`}}",
+    "perform_cleanup": "true"
   },
   "builders": [
     {
@@ -110,16 +116,32 @@
     },
     {
       "type": "shell",
-      "environment_vars": "CORE_TAG_NAME={{user `cloudify_version`}}",
+      "inline": [
+        "sudo mv /tmp/blueprint_configure /opt/cloudify_configuration"
+      ]
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "CORE_TAG_NAME={{user `cloudify_version`}}",
+        "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
+        "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
+        "CLOUDIFY_BROKER_USERNAME={{user `cloudify_broker_username`}}",
+        "CLOUDIFY_BROKER_PASSWORD={{user `cloudify_broker_password`}}",
+        "CLOUDIFY_MANAGER_SECURITY_ENABLED={{user `cloudify_manager_security_enabled`}}"
+      ],
       "script": "provision/bootstrap_simple"
     },
     {
       "type": "shell",
       "script": "provision/upload_blueprint",
       "environment_vars": [
-        "BLUEPRINT_PATH=/tmp/blueprint_configure",
+        "BLUEPRINT_PATH=/opt/cloudify_configuration",
         "BLUEPRINT_FILE_NAME_PREFIX=configure",
-        "BLUEPRINT_NAME=CloudifySettings"
+        "BLUEPRINT_NAME=CloudifySettings",
+        "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
+        "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
+        "CLOUDIFY_MANAGER_SECURITY_ENABLED={{user `cloudify_manager_security_enabled`}}"
       ]
     },
     {
@@ -133,6 +155,36 @@
     },
     {
       "type": "shell",
+      "script": "provision/set_manager_context",
+      "environment_vars": [
+        "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
+        "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
+        "CLOUDIFY_MANAGER_SECURITY_ENABLED={{user `cloudify_manager_security_enabled`}}"
+      ],
+      "execute_command": "{{ .Vars }} sudo -E ~/cfy/bin/python  {{ .Path }}"
+    },
+    {
+      "type": "file",
+      "source": "resources/cloudify_security_reconfiguration",
+      "destination": "/tmp/cloudify_security_reconfiguration"
+    },
+    {
+      "type": "file",
+      "source": "resources/cloudify_security_reconfiguration.cron",
+      "destination": "/tmp/cloudify_security_reconfiguration.cron"
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "CLOUDIFY_MANAGER_SECURITY_ENABLED={{user `cloudify_manager_security_enabled`}}"
+      ],
+      "script": "provision/security_reconfiguration_setup"
+    },
+    {
+      "type": "shell",
+      "environment_vars": [
+        "PERFORM_CLEANUP={{user `perform_cleanup`}}"
+      ],
       "script": "provision/cleanup"
     }
   ]

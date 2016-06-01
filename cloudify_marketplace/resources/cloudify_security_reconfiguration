@@ -1,0 +1,283 @@
+#! /usr/bin/env python
+import json
+import logging
+import logging.handlers
+import os
+import re
+import shutil
+import subprocess
+import time
+
+import yaml
+from cloudify_rest_client import CloudifyClient
+from cloudify_cli.utils import get_auth_header
+
+target_file = '/tmp/cloudify_ssl_certificate_replacement.json'
+
+# Config paths
+MGMTWORKER_CONFIG_PATH = '/opt/mgmtworker/work/broker_config.json'
+RESTSERVICE_CONFIG_PATH = '/opt/manager/cloudify-rest.conf'
+AMQPINFLUX_CONFIG_PATH = '/etc/sysconfig/cloudify-amqpinflux'
+MANAGER_REST_SECURITY_FILE = '/opt/manager/rest-security.conf'
+LOGSTASH_CONFIG_PATH = '/etc/logstash/conf.d/logstash.conf'
+RIEMANN_CONFIG_PATH = '/etc/sysconfig/cloudify-riemann'
+
+# Executable paths
+RABBITMQCTL = '/sbin/rabbitmqctl'
+SED = '/bin/sed'
+
+# Other Services
+RESTART_SERVICES = [
+    'nginx',
+    # web server
+    'cloudify-amqpinflux',
+    # mgmtworker
+    'cloudify-mgmtworker',
+    # manager
+    'cloudify-restservice',
+    'cloudify-riemann',
+    # metrics handler
+    'logstash',
+    # log/event handler
+    ]
+
+logger = logging.getLogger('cloudify_security_config')
+logger.setLevel(logging.DEBUG)
+handler = logging.handlers.SysLogHandler(address='/dev/log')
+logger.addHandler(handler)
+
+
+def service(action, name):
+    """Run `action` on the service `name`"""
+    # If a call to `service` fails for any reason we have no reasonable way to
+    # recover from that or to report it to the user. Additionally if it fails
+    # on a `stop` it actually doesn't matter as we'll restart shortly after.
+    logger.info('{action}ing {service}'.format(action=action, service=name))
+    subprocess.call(['/sbin/service', name, action])
+
+
+class ConfigFile(object):
+    """
+    A context manager for opening and editing config files.
+    Will return a ConfigFile object with attributes:
+        `old`: current file contents
+        `new': will be used to overwrite the config file on exiting the context
+    """
+    def __init__(self, file):
+        self.file = file
+
+    def __enter__(self):
+        with open(self.file) as fh:
+            self.new = self.old = fh.read()
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        with open(self.file, 'w') as fh:
+            fh.write(self.new)
+
+
+def update_config(file, rules):
+    with ConfigFile(file) as config:
+        for pattern, repl in rules:
+            config.new = re.sub(pattern, repl, config.new)
+
+
+def update_riemann_config(user, password):
+    update_config(RIEMANN_CONFIG_PATH,
+                  [('(?<=RABBITMQ_USER=").*(?=")', user),
+                   ('(?<=RABBITMQ_PASS=").*(?=")', password),
+                   ])
+
+
+def update_logstash_config(user, password):
+    update_config(LOGSTASH_CONFIG_PATH,
+                  [('(?<=user => ").*(?=")', user),
+                   ('(?<=password => ").*(?=")', password),
+                   ])
+
+
+def update_amqpinflux_config(user, password):
+    update_config(AMQPINFLUX_CONFIG_PATH,
+                  [('(?<=AMQP_USERNAME=).*', user),
+                   ('(?<=AMQP_PASSWORD=).*', password),
+                   ])
+
+
+def update_mgmtworker_config(user, password):
+    with ConfigFile(MGMTWORKER_CONFIG_PATH) as config:
+        mgmtworker_config = json.loads(config.old)
+        mgmtworker_config['broker_username'] = user
+        mgmtworker_config['broker_password'] = password
+        config.new = json.dumps(mgmtworker_config)
+
+
+def update_restservice_config(user, password):
+    with ConfigFile(RESTSERVICE_CONFIG_PATH) as config:
+        restservice_config = yaml.load(config.old)
+        restservice_config['amqp_username'] = user
+        restservice_config['amqp_password'] = password
+        # Disable default flow style to maintain configish layout
+        config.new = yaml.safe_dump(
+            restservice_config,
+            default_flow_style=False)
+
+
+def update_rabbitmq_credentials(username, password):
+    # delete all rabbit users
+    output = subprocess.check_output([RABBITMQCTL, 'list_users'])
+    # First line says "Listing user ..."
+    for line in output.splitlines()[1:]:
+        user = line.split()[0]
+        subprocess.call([RABBITMQCTL, 'delete_user', user])
+
+    # Add the new rabbit user
+    subprocess.call([RABBITMQCTL, 'add_user', username, password])
+    subprocess.call([RABBITMQCTL, 'set_permissions', username,
+                     '.*', '.*', '.*'])
+
+
+mq_config_functions = [
+    update_rabbitmq_credentials,
+    update_riemann_config,
+    update_logstash_config,
+    update_mgmtworker_config,
+    update_restservice_config,
+    update_amqpinflux_config,
+    ]
+
+
+def restart_rabbitmq():
+    service('restart', 'cloudify-rabbitmq')
+    # Wait for it to be listening before returning
+    for _ in range(60):
+        time.sleep(1)
+        try:
+            out = subprocess.check_output([RABBITMQCTL, 'status'])
+        except subprocess.CalledProcessError:
+            continue
+        if re.search("""\{listeners,\[.*\{'amqp/ssl',5671,"::"\}""", out):
+            return True
+
+
+def get_manager_rest_security():
+    with open(MANAGER_REST_SECURITY_FILE) as sec_file:
+        return json.loads(sec_file.read())
+
+
+def update_manager_rest_security(username, password):
+    """Update the manager credentials"""
+    sec_data = get_manager_rest_security()
+    user = sec_data[
+        'userstore_driver']['properties']['userstore']['users'][0]
+    sec_data['admin_username'] = user['username'] = username
+    sec_data['admin_password'] = user['password'] = password
+    with open(MANAGER_REST_SECURITY_FILE, 'w') as sec_file:
+        json.dump(sec_data, sec_file)
+
+
+def main(details):
+    sec_data = get_manager_rest_security()
+    execution_id = details['execution_id']
+    auth_header = get_auth_header(
+        username=sec_data['admin_username'],
+        password=sec_data['admin_password'],
+    )
+    cert_path = '/root/cloudify/server.crt'
+
+    c = CloudifyClient(
+        headers=auth_header,
+        cert=cert_path,
+        trust_all=False,
+        port=443,
+        protocol='https',
+    )
+
+    logger.info('Waiting for configuration workflow to finish...')
+    while c.executions.get(execution_id)['status'] != 'terminated':
+        time.sleep(0.5)
+    logger.info('...configuration workflow finished.')
+
+    # Update the cert in the provider context
+    # Find the broker public cert
+    for temp_cert, _ in details['new_certs']:
+        if 'broker-public' in temp_cert:
+            broker_cert_path = temp_cert
+            break
+    with open(broker_cert_path) as cert_handle:
+        public_cert = cert_handle.read()
+    # And update the context with it
+    name = c.manager.get_context()['name']
+    context = c.manager.get_context()['context']
+    context['cloudify']['cloudify_agent']['broker_ssl_cert'] = public_cert
+    context['cloudify']['cloudify_agent']['broker_user'] = \
+        details['new_broker_username']
+    context['cloudify']['cloudify_agent']['broker_pass'] = \
+        details['new_broker_password']
+    c.manager.update_context(name, context)
+    logger.info('Updated broker cert in provider context with new cert.')
+
+    # Stop services to try to avoid logging meaningless errors while certs
+    # are being replaced
+    for name in RESTART_SERVICES:
+        service('stop', name)
+
+    # Replace certs
+    for temp_cert, destination in details['new_certs']:
+        logger.info('Copying {temp} to {destination}'.format(
+            temp=temp_cert,
+            destination=destination,
+        ))
+        shutil.copyfile(temp_cert, destination)
+
+    restart_rabbitmq()
+
+    # update rabbitmq credentials for all services
+    for func in mq_config_functions:
+        logger.info('Running {}'.format(func.__name__))
+        func(details['new_broker_username'], details['new_broker_password'])
+
+    update_manager_rest_security(
+        details['new_manager_username'],
+        details['new_manager_password'])
+
+    # Start services
+    for name in RESTART_SERVICES:
+        # Call restart in case any of them didn't stop properly
+        service('restart', name)
+
+    # Clean up temporary certificates
+    logger.info('Deleting temporary certificates')
+    for temp_cert, _ in details['new_certs']:
+        logger.debug('Trying to delete {temp}'.format(temp=temp_cert))
+        try:
+            os.unlink(temp_cert)
+            logger.debug('Deleted {temp}'.format(temp=temp_cert))
+        except OSError:
+            # Already deleted this temp cert
+            logger.debug(
+                'Could not delete {temp}. '
+                'Assuming already deleted.'.format(temp=temp_cert)
+            )
+
+
+if __name__ == '__main__':
+    logger.debug('Looking for cloudify security configuration json')
+    if os.path.isfile(target_file):
+        logger.info('Found cloudify security configuration, processing')
+        # Even if the writing is for some reason partially complete,
+        # we'll be re-running in at most 1 minute anyway
+        with open(target_file) as target_file_handle:
+            details = json.load(target_file_handle)
+
+        logger.debug('JSON: {contents}'.format(contents=str(details)))
+        # We're done, we don't need the details file any more
+        # Remove the file now in case we take more than a minute to run
+        os.unlink(target_file)
+        logger.debug('Deleted security configuration file')
+
+        # And we can stop running this cron job, too!
+        logger.info('Stopping security configuration cron job')
+        os.unlink('/etc/cron.d/cloudify_security_reconfiguration')
+
+        # If we got this far without crashing everything should work :)
+        main(details)

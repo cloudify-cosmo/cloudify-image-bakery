@@ -1,12 +1,13 @@
+import base64
 from copy import copy
 import json
 import os
 import subprocess
 
-from cloudify.exceptions import NonRecoverableError
 from cloudify import ctx
 from cloudify_rest_client import CloudifyClient
 from cloudify.state import ctx_parameters as inputs
+from cloudify.exceptions import NonRecoverableError
 from neutronclient.v2_0 import client as neutronclient
 from novaclient.v2 import client as novaclient
 
@@ -31,6 +32,18 @@ def create_openstack_config(username,
         os.makedirs(conf_dir)
     with open(OPENSTACK_PLUGIN_CONF, 'w') as conf_handle:
         json.dump(config, conf_handle)
+
+
+def get_auth_header(username, password):
+    header = None
+
+    if username and password:
+        credentials = '{0}:{1}'.format(username, password)
+        header = {
+            'Authorization':
+            'Basic' + ' ' + base64.urlsafe_b64encode(credentials)}
+
+    return header
 
 
 def build_resources_context(server,
@@ -221,7 +234,22 @@ def add_tcp_allows_to_security_group(nova_client,
 def update_context(server,
                    resources_context,
                    agents_user):
-    c = CloudifyClient()
+    security_enabled = os.path.exists(
+        '/root/.cloudify_image_security_enabled'
+    )
+    if security_enabled:
+        auth_header = get_auth_header('cloudify', 'cloudify')
+        cert_path = '/root/cloudify/server.crt'
+        c = CloudifyClient(
+            headers=auth_header,
+            cert=cert_path,
+            trust_all=False,
+            port=443,
+            protocol='https',
+        )
+    else:
+        c = CloudifyClient()
+
     name = c.manager.get_context()['name']
     context = c.manager.get_context()['context']
     context['cloudify']['cloudify_agent']['agent_key_path'] = AGENTS_KEY_PATH

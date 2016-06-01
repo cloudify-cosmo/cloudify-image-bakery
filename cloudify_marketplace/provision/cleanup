@@ -1,7 +1,12 @@
 #!/bin/bash -e
 
 # Clean up folders we used
-sudo rm -rf ~/.ssh/* /tmp/* ~/cfy ~/cloudify
+if [[ "${PERFORM_CLEANUP}" == "true" ]]; then
+  echo "Cleaning up manager build and tmp folders."
+  sudo rm -rf /tmp/* ~/cfy ~/cloudify
+else
+  echo "Skipping cleanup of build and tmp folders."
+fi
 
 # Clean up yum cache directory
 sudo yum clean all

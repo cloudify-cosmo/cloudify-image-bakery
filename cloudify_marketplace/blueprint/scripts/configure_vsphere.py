@@ -1,3 +1,4 @@
+import base64
 import os
 import subprocess
 
@@ -5,6 +6,18 @@ import yaml
 from cloudify import ctx
 from cloudify_rest_client import CloudifyClient
 from cloudify.state import ctx_parameters as inputs
+
+
+def get_auth_header(username, password):
+    header = None
+
+    if username and password:
+        credentials = '{0}:{1}'.format(username, password)
+        header = {
+            'Authorization':
+            'Basic' + ' ' + base64.urlsafe_b64encode(credentials)}
+
+    return header
 
 
 def create_agents_keypair(path, kp_name):
@@ -77,7 +90,21 @@ def allow_port_through_firewall(port, proto='tcp'):
 
 
 def update_context(agent_pk_path, agent_user):
-    c = CloudifyClient()
+    security_enabled = os.path.exists(
+        '/root/.cloudify_image_security_enabled'
+    )
+    if security_enabled:
+        auth_header = get_auth_header('cloudify', 'cloudify')
+        cert_path = '/root/cloudify/server.crt'
+        c = CloudifyClient(
+            headers=auth_header,
+            cert=cert_path,
+            trust_all=False,
+            port=443,
+            protocol='https',
+        )
+    else:
+        c = CloudifyClient()
     name = c.manager.get_context()['name']
     context = c.manager.get_context()['context']
     context['cloudify']['cloudify_agent']['agent_key_path'] = agent_pk_path

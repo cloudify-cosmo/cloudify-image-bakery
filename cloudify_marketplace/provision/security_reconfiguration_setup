@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+
+if [[ "${CLOUDIFY_MANAGER_SECURITY_ENABLED}" == "true" ]]; then
+  # Security enabled, activate the cron job
+  sudo mv /tmp/cloudify_security_reconfiguration /opt/cloudify_security_reconfiguration
+  sudo chown root. /opt/cloudify_security_reconfiguration
+  sudo chmod 500 /opt/cloudify_security_reconfiguration
+
+  sudo mv /tmp/cloudify_security_reconfiguration.cron /etc/cron.d/cloudify_security_reconfiguration
+  sudo chown root. /etc/cron.d/cloudify_security_reconfiguration
+  sudo chmod 440 /etc/cron.d/cloudify_security_reconfiguration
+else
+  # Manager security not enabled. Don't put cron job in place
+  rm /tmp/cloudify_security_reconfiguration
+  rm /tmp/cloudify_security_reconfiguration.cron
+fi

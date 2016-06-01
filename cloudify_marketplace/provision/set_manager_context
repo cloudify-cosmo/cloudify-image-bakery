@@ -1,0 +1,70 @@
+#! /usr/bin/env python
+import os
+
+from cloudify_rest_client import CloudifyClient
+from cloudify_cli.utils import get_auth_header
+import yaml
+
+
+def update_context(platform):
+    if os.environ['CLOUDIFY_MANAGER_SECURITY_ENABLED'] == 'true':
+        auth_header = get_auth_header(
+            username=os.environ['CLOUDIFY_MANAGER_USERNAME'],
+            password=os.environ['CLOUDIFY_MANAGER_PASSWORD'],
+        )
+        sudo_user = os.environ.get('SUDO_USER')
+        if sudo_user is not None:
+            home = '~{}'.format(sudo_user)
+        else:
+            home = '~'
+        cert_path = os.path.expanduser(
+            '{home}/cloudify/cloudify-manager-blueprints'
+            '/resources/ssl/server.crt'.format(
+                home=home,
+            ),
+        )
+        # TODO: Bye bye
+        print('Cert path: %s' % cert_path)
+        c = CloudifyClient(
+            headers=auth_header,
+            cert=cert_path,
+            trust_all=False,
+            port=443,
+            protocol='https',
+        )
+    else:
+        # Use the alternative blueprints which don't ask for security details
+        platform = platform + '_insecure'
+        c = CloudifyClient()
+
+    name = c.manager.get_context()['name']
+    context = c.manager.get_context()['context']
+
+    configuration_blueprint_path = \
+        '/opt/cloudify_configuration/configure_{platform}.yaml'
+    configuration_blueprint_path = configuration_blueprint_path.format(
+        platform=platform,
+    )
+
+    with open(configuration_blueprint_path) as configuration_blueprint_handle:
+        configuration_blueprint = yaml.load(
+            configuration_blueprint_handle.read()
+        )
+
+    context['cloudify']['manager_configuration'] = {
+        'enabled': True,
+        'completed': False,
+        'title': '{platform} configuration'.format(
+            platform=platform.capitalize(),
+        ),
+        'blueprint_path': '/opt/cloudify_configuration/blueprint.yaml',
+        'inputs': configuration_blueprint.get('inputs', {}),
+        'outputs': configuration_blueprint.get('outputs', {}),
+    }
+
+    print('Updating context')
+    c.manager.update_context(name, context)
+
+
+if __name__ == '__main__':
+    update_context(platform=os.environ['PACKER_BUILD_NAME'])

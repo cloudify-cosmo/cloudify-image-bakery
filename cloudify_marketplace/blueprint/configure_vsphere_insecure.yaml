@@ -6,26 +6,11 @@ imports:
 
 inputs:
 
-  manager_names_and_ips:
-    type: string
-    description: >
-      Comma separated list of DNS names and IP addresses that are valid for
-      accessing the manager UI through a web browser.
-      e.g. 192.0.2.54,mycloudify.example.com,mycloudify.dev.example.com,192.0.2.100
-
-  broker_names_and_ips:
-    type: string
-    default: ''
-    description: >
-      Comma separated list of DNS names and IP addresses that are valid for
-      accessing the broker through an AMQP client.
-      e.g. 192.0.2.54,mybroker.example.com,mybroker.dev.example.com,192.0.2.100
-
   user_ssh_key:
     type: string
     default: ''
     description: >
-      SSH key to authorize for access to the image builder user account.
+      SSH key to authorize for access to the centos user account.
 
   agents_keypair_name:
     type: string
@@ -78,32 +63,6 @@ inputs:
       Whether to use vCenter's auto-placement algorithms
       or this plugin's.
 
-
-
-
-  new_manager_username:
-    type: string
-    default: cloudify
-    description: >
-      New username for the cloudify manager
-
-  new_manager_password:
-    type: string
-    description: >
-      New password for the cloudify manager
-
-  new_broker_username:
-    type: string
-    default: cloudify
-    description: >
-      New username for the message broker
-
-  new_broker_password:
-    type: string
-    default: youshouldreallychooseastrongpassphrase
-    description: >
-      New password for the message broker
-
 node_templates:
 
   general_configuration:
@@ -115,12 +74,6 @@ node_templates:
           executor: central_deployment_agent
           inputs:
             user_ssh_key: { get_input: user_ssh_key }
-            manager_names_and_ips: { get_input: manager_names_and_ips }
-            broker_names_and_ips: { get_input: broker_names_and_ips }
-            new_manager_username: { get_input: new_manager_username }
-            new_manager_password: { get_input: new_manager_password }
-            new_broker_username: { get_input: new_broker_username }
-            new_broker_password: { get_input: new_broker_password }
 
   vsphere_configuration:
     type: cloudify.nodes.Root
