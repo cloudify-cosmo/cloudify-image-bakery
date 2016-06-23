@@ -8,7 +8,7 @@ from cloudify_rest_client import CloudifyClient
 from cloudify.state import ctx_parameters as inputs
 
 
-BOTO_CONF = os.path.expanduser('~/.boto')
+BOTO_CONF_PATH = os.path.expanduser('~/.boto')
 
 
 def get_auth_header(username, password):
@@ -130,6 +130,10 @@ def update_context(agent_sg_id, agent_kp_id, agent_pk_path, agent_user):
     context['cloudify']['cloudify_agent']['agent_key_path'] = agent_pk_path
     context['cloudify']['cloudify_agent']['user'] = agent_user
 
+    agent_env = context['cloudify']['cloudify_agent'].get('env', {})
+    agent_env['AWS_CONFIG_PATH'] = BOTO_CONF_PATH
+    context['cloudify']['cloudify_agent']['env'] = agent_env
+
     resources = {
         'agents_security_group': {
             'external_resource': False,
@@ -148,7 +152,7 @@ def update_context(agent_sg_id, agent_kp_id, agent_pk_path, agent_user):
 
 def main():
     create_boto_config(
-        path=BOTO_CONF,
+        path=BOTO_CONF_PATH,
         aws_access_key_id=inputs['aws_access_key'],
         aws_secret_access_key=inputs['aws_secret_key'],
         region=get_region(),
@@ -158,6 +162,10 @@ def main():
     # accessed to get credentials
     import boto.ec2
     conn = boto.ec2.EC2Connection()
+    # While the region the connection claims to be on will be the right one,
+    # attempts to list instances always seem to return US East unless we force
+    # it to reconnect to the region it claims to already be connected to.
+    conn = conn.get_all_regions(region_names=[conn.region.name])[0].connect()
 
     manager_instance = get_manager_instance(conn=conn)
     manager_security_groups = conn.get_all_security_groups(group_ids=[
