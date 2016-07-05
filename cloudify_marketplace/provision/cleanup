@@ -1,4 +1,5 @@
 #!/bin/bash -e
+set -e
 
 # Clean up folders we used
 if [[ "${PERFORM_CLEANUP}" == "true" ]]; then

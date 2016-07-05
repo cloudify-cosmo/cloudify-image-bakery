@@ -1,4 +1,6 @@
 #! /usr/bin/env bash
+set -e
+
 DEST=/usr/local/bin/${SCRIPT_NAME}
 sudo mv /tmp/${SCRIPT_NAME} ${DEST}
 sudo chown root. ${DEST}

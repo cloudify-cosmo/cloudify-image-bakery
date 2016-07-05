@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 # disable selinux
 sudo setenforce 0

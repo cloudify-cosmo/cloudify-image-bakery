@@ -1,8 +1,10 @@
 # Cloudify AMI builder
 
 ## Prerequisites
+> A UNIX-like OS is required for running Packer. Builds aren't supported on Windows
 
 * [packer](https://www.packer.io/intro/getting-started/setup.html) (tested on 0.8.6)
+* zip
 * Account credentials for each cloud platform you want to build on.
 * An image ID to base the new image on.
 * OpenStack specific:

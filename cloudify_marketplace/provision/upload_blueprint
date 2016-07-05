@@ -1,4 +1,6 @@
 #! /usr/bin/env bash
+set -e 
+
 CFY_BIN=/opt/cfy_cli/bin/cfy
 cd ${BLUEPRINT_PATH}
 
