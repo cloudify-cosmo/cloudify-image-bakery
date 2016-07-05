@@ -1,4 +1,5 @@
 #! /usr/bin/env bash
+set -e
 
 if [[ "${CLOUDIFY_MANAGER_SECURITY_ENABLED}" == "true" ]]; then
   # Security enabled, activate the cron job

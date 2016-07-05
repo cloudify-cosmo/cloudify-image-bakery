@@ -1,4 +1,6 @@
 #! /usr/bin/env bash
+set -e
+
 ip=$(get_first_external_ip)
 
 /usr/bin/sed -i -e "s/MANAGEMENT_IP=.*/MANAGEMENT_IP="'"'"${ip}"'"'"/" /etc/sysconfig/cloudify-mgmtworker

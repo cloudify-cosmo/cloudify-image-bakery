@@ -1,4 +1,6 @@
 #! /usr/bin/env bash
+set -e
+
 DEST=/etc/systemd/system/${SERVICE_NAME}
 sudo mv /tmp/${SERVICE_NAME} ${DEST}
 sudo chown root. ${DEST}
