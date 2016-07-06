@@ -75,6 +75,10 @@ def build_certs(private_key_path,
                 subjectaltnames,
                 openssl_conf_path='/etc/pki/tls/openssl.cnf'):
     subjectaltnames = subjectaltnames.split(',')
+    subjectaltnames = [
+        altname.strip() for altname in subjectaltnames
+        if altname.strip() != ''
+    ]
 
     common_name = subjectaltnames[0]
     subjectaltnames = set(subjectaltnames)
@@ -106,7 +110,7 @@ def build_certs(private_key_path,
         ','.join(subject_altips),
     ])
 
-    subprocess.call([
+    subprocess.check_call([
         'bash', '-c',
         'openssl req -x509 -nodes -newkey rsa:2048 -keyout {private_key_path} '
         '-out {public_key_path} -days 3650 -batch -subj "/CN={common_name}" '
