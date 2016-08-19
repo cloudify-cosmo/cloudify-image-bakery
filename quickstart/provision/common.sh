@@ -81,7 +81,7 @@ function bootstrap
 	cd ~/cloudify
 	echo "bootstrapping..."
 	# bootstrap the manager locally
-	cfy bootstrap -v -p cloudify-manager-blueprints/simple-manager-blueprint.yaml -i inputs.yaml --install-plugins
+	cfy bootstrap -v cloudify-manager-blueprints/simple-manager-blueprint.yaml -i inputs.yaml --install-plugins
 	if [ "$?" -ne "0" ]; then
 	  echo "Bootstrap failed, stoping provision."
 	  exit 1
