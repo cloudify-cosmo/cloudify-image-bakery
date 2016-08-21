@@ -126,7 +126,7 @@ function bootstrap
   # bootstrap the manager locally
   PATH=$CFY_VENV/bin:PATH $CFY_VENV/bin/cfy bootstrap -v --install-plugins \
     --keep-up-on-failure \
-    -p cloudify-manager-blueprints/simple-manager-blueprint.yaml \
+    cloudify-manager-blueprints/simple-manager-blueprint.yaml \
     -i ~/cloudify//bootstrap_inputs.yaml
   if [ "$?" -ne "0" ]; then
     echo "Bootstrap failed, stopping provision."

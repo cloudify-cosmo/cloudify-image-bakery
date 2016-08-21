@@ -13,26 +13,26 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
-import json
-import os
-import paramiko
 import re
+import os
+import ssl
+import json
+import time
 import shutil
 import socket
-import ssl
-import subprocess
+import paramiko
 import tempfile
-import time
+import subprocess
 from abc import ABCMeta, abstractmethod
-
-from cosmo_tester.framework import git_helper as git
 
 from retrying import retry
 from requests import ConnectionError
+
 from cloudify_cli import constants
 from cloudify_rest_client.exceptions import CloudifyClientError
-from cosmo_tester.framework.util import create_rest_client
-from cosmo_tester.framework.cfy_helper import CfyHelper
+
+from cosmo_tester.framework import git_helper as git
+from cosmo_tester.framework.util import create_rest_client, get_cfy
 
 DEFAULT_IMAGE_BAKERY_REPO_URL = 'https://github.com/' \
                                 'cloudify-cosmo/cloudify-image-bakery.git'
@@ -114,19 +114,24 @@ class AbstractPackerTest(object):
     secure = False
 
     @abstractmethod
-    def _delete_image(self): pass
+    def _delete_image(self):
+        pass
 
     @abstractmethod
-    def _find_image(self): pass
+    def _find_image(self):
+        pass
 
     @abstractmethod
-    def deploy_image(self): pass
+    def deploy_image(self):
+        pass
 
     @abstractmethod
-    def _delete_agents_keypair(self): pass
+    def _delete_agents_keypair(self):
+        pass
 
     @abstractmethod
-    def _delete_agents_secgroup(self): pass
+    def _delete_agents_secgroup(self):
+        pass
 
     def setUp(self):
         super(AbstractPackerTest, self).setUp()
@@ -339,7 +344,7 @@ class AbstractPackerTest(object):
 
     # TODO: change stop_max_delay to something reasonable. It's ridiculous
     # right now because of openstack host problems
-    @retry(stop_max_delay=50*60*1000, wait_exponential_multiplier=1000)
+    @retry(stop_max_delay=50 * 60 * 1000, wait_exponential_multiplier=1000)
     def _check_for_images(self, should_exist=True):
         self._find_images()
         for env, image in self.images.items():
@@ -422,12 +427,12 @@ class AbstractPackerTest(object):
         self.config_inputs.update({
             'agents_security_group_name': self.agents_secgroup,
             'agents_keypair_name': self.agents_keypair,
-            })
+        })
         if self.secure:
             # Need to add the external IP address to the generated cert
             self.config_inputs.update({
                 'manager_names_and_ips': self.manager_public_ip,
-                })
+            })
 
         # Arbitrary sleep to wait for manager to actually finish starting as
         # otherwise we suffer timeouts in the next section
@@ -519,16 +524,11 @@ class AbstractPackerTest(object):
             '{timeout} seconds.'.format(timeout=timeout)
         )
 
-    @retry(stop_max_delay=180000, wait_exponential_multiplier=1000)
-    def cfy_connect(self, *args, **kwargs):
-        self.logger.debug('Attempting to set up CfyHelper: {} {}'.format(
-            args, kwargs))
-        return CfyHelper(*args, **kwargs)
-
     def test_hello_world(self):
         self._deploy_manager()
 
-        self.cfy = self.cfy_connect(management_ip=self.manager_public_ip)
+        self.cfy = get_cfy()
+        self.cfy.use(self.manager_public_ip)
 
         self.logger.info('Waiting for config install workflow to finish...')
         self.wait_for_config_to_finish(self.client)
@@ -562,7 +562,7 @@ class AbstractSecureTest(AbstractPackerTest):
             'new_broker_password': self.conf.get('new_broker_password', 'new'),
             'broker_names_and_ips': self.conf.get('broker_names_and_ips',
                                                   'test'),
-            })
+        })
 
         os.environ['CLOUDIFY_SSL_TRUST_ALL'] = 'True'
 
@@ -577,10 +577,8 @@ class AbstractSecureTest(AbstractPackerTest):
         self.logger.info('Waiting for config install workflow to finish...')
         self.wait_for_config_to_finish(self.client)
 
-        self.cfy = self.cfy_connect(
-            management_ip=self.manager_public_ip,
-            port=443,
-            )
+        self.cfy = get_cfy()
+        self.cfy.use(self.manager_public_ip, rest_port=443)
 
         self.logger.info('...workflow finished.')
         post_config_key = get_ssh_host_key(self.manager_public_ip)
@@ -628,10 +626,9 @@ class AbstractSecureTest(AbstractPackerTest):
         self.logger.debug('Reconnectiong cli client with SSL cert')
         del os.environ['CLOUDIFY_SSL_TRUST_ALL']
         os.environ['CLOUDIFY_SSL_CERT'] = post_config_cert_path
-        self.cfy = self.cfy_connect(
-            management_ip=self.manager_public_ip,
-            port=443,
-            )
+
+        self.cfy = get_cfy()
+        self.cfy.use(self.manager_public_ip, rest_port=443)
 
         time.sleep(120)
 
