@@ -26,8 +26,8 @@
     "cloudify_manager_password": "cloudify",
     "cloudify_broker_username": "cloudify",
     "cloudify_broker_password": "cloudify",
-    "cloudify_manager_security_enabled": "true",
     "cloudify_version": "{{user `cloudify_version`}}",
+    "cloudify_cli_package_url": "CLOUDIFY CLI PACKAGE URL NOT SET",
     "perform_cleanup": "true"
   },
   "builders": [
@@ -128,7 +128,7 @@
         "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
         "CLOUDIFY_BROKER_USERNAME={{user `cloudify_broker_username`}}",
         "CLOUDIFY_BROKER_PASSWORD={{user `cloudify_broker_password`}}",
-        "CLOUDIFY_MANAGER_SECURITY_ENABLED={{user `cloudify_manager_security_enabled`}}"
+        "CLI_PACKAGE_URL={{user `cloudify_cli_package_url`}}"
       ],
       "script": "provision/bootstrap_simple"
     },
@@ -140,8 +140,7 @@
         "BLUEPRINT_FILE_NAME_PREFIX=configure",
         "BLUEPRINT_NAME=CloudifySettings",
         "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
-        "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
-        "CLOUDIFY_MANAGER_SECURITY_ENABLED={{user `cloudify_manager_security_enabled`}}"
+        "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}"
       ]
     },
     {
@@ -158,27 +157,9 @@
       "script": "provision/set_manager_context",
       "environment_vars": [
         "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
-        "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
-        "CLOUDIFY_MANAGER_SECURITY_ENABLED={{user `cloudify_manager_security_enabled`}}"
+        "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}"
       ],
-      "execute_command": "{{ .Vars }} sudo -E ~/cfy/bin/python  {{ .Path }}"
-    },
-    {
-      "type": "file",
-      "source": "resources/cloudify_security_reconfiguration",
-      "destination": "/tmp/cloudify_security_reconfiguration"
-    },
-    {
-      "type": "file",
-      "source": "resources/cloudify_security_reconfiguration.cron",
-      "destination": "/tmp/cloudify_security_reconfiguration.cron"
-    },
-    {
-      "type": "shell",
-      "environment_vars": [
-        "CLOUDIFY_MANAGER_SECURITY_ENABLED={{user `cloudify_manager_security_enabled`}}"
-      ],
-      "script": "provision/security_reconfiguration_setup"
+      "execute_command": "{{ .Vars }} sudo -E /opt/cfy/embedded/bin/python {{ .Path }}"
     },
     {
       "type": "shell",

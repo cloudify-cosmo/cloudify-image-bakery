@@ -1,6 +1,16 @@
 #!/bin/bash
 set -e
 
+CLI_RPM="cloudify-cli.rpm"
+MANAGER_BLUEPRINTS_PATH="/opt/cfy/cloudify-manager-blueprints"
+MANAGER_BLUEPRINT_PATH="${MANAGER_BLUEPRINTS_PATH}/simple-manager-blueprint.yaml"
+INPUTS_FILE_PATH="/home/${USER}/bootstrap_inputs.yaml"
+CFY_VENV="/opt/cfy/embedded"
+
+
+sudo yum install -y git gcc python-devel
+
+
 function install_prereqs
 {
   echo installing prerequisites
@@ -10,33 +20,13 @@ function install_prereqs
   sudo pip install virtualenv
 }
 
-function create_virtualenv
-{
-  echo creating cloudify virtualenv
-  virtualenv $CFY_VENV
-}
-
 function install_cli
 {
-  $CFY_VENV/bin/pip install https://github.com/cloudify-cosmo/cloudify-cli/archive/$CORE_TAG_NAME.zip \
-    -r https://raw.githubusercontent.com/cloudify-cosmo/cloudify-cli/$CORE_TAG_NAME/dev-requirements.txt
-}
+  echo "Downloading Cloudify's CLI from: ${CLI_PACKAGE_URL}"
+  curl ${CLI_PACKAGE_URL} -o ${CLI_RPM} -s
 
-function init_cfy_workdir
-{
-  mkdir -p $CFY_ENV
-  pushd $CFY_ENV
-  $CFY_VENV/bin/cfy init
-  popd
-}
-
-function get_manager_blueprints
-{
-  echo "Retrieving Manager Blueprints"
-  mkdir -p $CFY_ENV/cloudify-manager-blueprints
-  dest=$(mktemp --suffix=.tar.gz)
-  curl --fail -L https://github.com/cloudify-cosmo/cloudify-manager-blueprints/archive/$CORE_TAG_NAME.tar.gz -o $dest
-  tar -zxf $dest -C $CFY_ENV/cloudify-manager-blueprints --strip-components=1
+  echo "Installing Cloudify's CLI..."
+  sudo rpm -i ${CLI_RPM}
 }
 
 function generate_keys
@@ -48,111 +38,37 @@ function generate_keys
 
 function create_inputs
 {
-  broker_cert_private=$(cat cloudify-manager-blueprints/resources/ssl/broker.key | sed -r 's/^/  /')
-  broker_cert_public=$(cat cloudify-manager-blueprints/resources/ssl/broker.crt | sed -r 's/^/  /')
-
   echo "public_ip: 127.0.0.1
 private_ip: 127.0.0.1
 ssh_user: ${USER}
 ssh_key_filename: /home/${USER}/.ssh/id_rsa
 
-security_enabled: ${CLOUDIFY_MANAGER_SECURITY_ENABLED}
-ssl_enabled: ${CLOUDIFY_MANAGER_SECURITY_ENABLED}
-insecure_endpoints_disabled: ${CLOUDIFY_MANAGER_SECURITY_ENABLED}
+ssl_enabled: false
 admin_username: ${CLOUDIFY_MANAGER_USERNAME}
 admin_password: ${CLOUDIFY_MANAGER_PASSWORD}
 
-rabbitmq_ssl_enabled: ${CLOUDIFY_MANAGER_SECURITY_ENABLED}
-rabbitmq_cert_private: |
-${broker_cert_private}
-rabbitmq_cert_public: |
-${broker_cert_public}
+rabbitmq_ssl_enabled: false
 rabbitmq_username: ${CLOUDIFY_BROKER_USERNAME}
-rabbitmq_password: ${CLOUDIFY_BROKER_PASSWORD}" > ~/cloudify//bootstrap_inputs.yaml
+rabbitmq_password: ${CLOUDIFY_BROKER_PASSWORD}" > ${INPUTS_FILE_PATH}
 }
 
-function generate_certs
-{
-  # Create temporary certs (these will be replaced when the configure blueprint is run)
-  description=${1}
-  private_out=${2}
-  public_out=${3}
-  common_name=${4}
-  subjectaltnames=${5}
-
-  echo "Creating SSL certificates for ${description}"
-  export openssl_conf_path=/etc/pki/tls/openssl.cnf
-
-  openssl req -x509 -nodes -newkey rsa:2048 -keyout ${private_out} -out ${public_out} -days 3650 -batch -subj "/CN=${common_name}" -reqexts SAN -extensions SAN -config <(cat ${openssl_conf_path} <(printf "[SAN]\nsubjectAltName=${subjectaltnames}") )
-}
-
-function create_manager_certs
-{
-  # Including 127.0.0.1 as DNS as well as IP due to requests throwing a wobbly
-  generate_certs manager cloudify-manager-blueprints/resources/ssl/server.key cloudify-manager-blueprints/resources/ssl/server.crt 127.0.0.1 IP:127.0.0.1,DNS:localhost,DNS:127.0.0.1
-
-  # Append the cert to those trusted by requests
-  cat cloudify-manager-blueprints/resources/ssl/server.crt >> $($CFY_VENV/bin/python -c 'import requests; print(requests.certs.where())')
-}
-
-function create_broker_certs
-{
-  # The certs don't necessarily need to go where they're put here, but it does keep them nicely organised
-  generate_certs broker cloudify-manager-blueprints/resources/ssl/broker.key cloudify-manager-blueprints/resources/ssl/broker.crt 127.0.0.1 IP:127.0.0.1,DNS:localhost
-}
-
-function give_system_wide_cli_access
-{
-  cd ${CFY_VENV}
-  virtualenv --relocatable .
-  cd -
-  sudo cp -r ${CFY_VENV} /opt/cfy_cli
-  sudo chown -R root. /opt/cfy_cli
-}
 
 function bootstrap
 {
-  pushd $CFY_ENV
   echo "preparing to bootstrap..."
-  create_broker_certs
-  create_manager_certs
   create_inputs
-
-  # Set env vars so that the test of manager provisioning will succeed
-  export CLOUDIFY_USERNAME=${CLOUDIFY_MANAGER_USERNAME}
-  export CLOUDIFY_PASSWORD=${CLOUDIFY_MANAGER_PASSWORD}
 
   echo "bootstrapping..."
   # bootstrap the manager locally
-  PATH=$CFY_VENV/bin:PATH $CFY_VENV/bin/cfy bootstrap -v --install-plugins \
-    --keep-up-on-failure \
-    cloudify-manager-blueprints/simple-manager-blueprint.yaml \
-    -i ~/cloudify//bootstrap_inputs.yaml
+  cfy bootstrap ${MANAGER_BLUEPRINT_PATH} -i ${INPUTS_FILE_PATH} -v
   if [ "$?" -ne "0" ]; then
     echo "Bootstrap failed, stopping provision."
     exit 1
   fi
 
-  if [[ "${CLOUDIFY_MANAGER_SECURITY_ENABLED}" == "true" ]]; then
-    sudo touch /root/.cloudify_image_security_enabled
-  fi
-
   echo "bootstrap done."
-  popd
 }
 
-CFY_VENV="$HOME/cfy"
-CFY_ENV="$HOME/cloudify"
-if [ -z "$CORE_TAG_NAME" ]; then
-  echo "### Building from master branch ###"
-  CORE_TAG_NAME="master"
-fi
-
-install_prereqs
-create_virtualenv
 install_cli
-init_cfy_workdir
-get_manager_blueprints
 generate_keys
-give_system_wide_cli_access
 bootstrap

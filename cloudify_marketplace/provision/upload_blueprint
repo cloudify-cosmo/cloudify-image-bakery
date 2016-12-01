@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 set -e
 
-CFY_BIN=/opt/cfy_cli/bin/cfy
+CFY_BIN="cfy"
 cd ${BLUEPRINT_PATH}
 
 # Inject the correct username
@@ -9,18 +9,6 @@ sudo sed -i "s/<<IMAGEBUILDERUSER>>/$(whoami)/" scripts/configure.py
 
 BLUEPRINT_FILENAME=${BLUEPRINT_FILE_NAME_PREFIX}_${PACKER_BUILD_NAME}
 
-# Initialise the env and upload the blueprint
-${CFY_BIN} init
-
-if [[ "${CLOUDIFY_MANAGER_SECURITY_ENABLED}" == "true" ]]; then
-    # Use the correct credentials
-    export CLOUDIFY_USERNAME=${CLOUDIFY_MANAGER_USERNAME}
-    export CLOUDIFY_PASSWORD=${CLOUDIFY_MANAGER_PASSWORD}
-    export CLOUDIFY_SSL_CERT=~/cloudify/cloudify-manager-blueprints/resources/ssl/server.crt
-    ${CFY_BIN} use 127.0.0.1 --rest-port 443
-else
-    BLUEPRINT_FILENAME=${BLUEPRINT_FILENAME}_insecure
-    ${CFY_BIN} use 127.0.0.1
-fi
+${CFY_BIN} profile use 127.0.0.1
 
 ${CFY_BIN} blueprints upload ${BLUEPRINT_FILENAME}.yaml -b ${BLUEPRINT_NAME}
