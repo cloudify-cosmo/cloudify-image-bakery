@@ -28,6 +28,7 @@
     "cloudify_broker_password": "cloudify",
     "cloudify_version": "{{user `cloudify_version`}}",
     "cloudify_cli_package_url": "CLOUDIFY CLI PACKAGE URL NOT SET",
+    "cloudify_edition": "CLOUDIFY EDITION NOT SET",
     "perform_cleanup": "true"
   },
   "builders": [
@@ -59,7 +60,7 @@
       "floating_ip_pool": "{{user `openstack_floating_ip_pool_name`}}",
       "networks": ["{{user `openstack_network`}}"],
       "security_groups": ["{{user `openstack_security_group`}}"],
-      "image_name": "{{user `name_prefix`}} {{timestamp}}"
+      "image_name": "cloudify-manager-{{user `cloudify_edition`}}-{{user `cloudify_version`}}"
     },
     {
       "name": "vsphere",
