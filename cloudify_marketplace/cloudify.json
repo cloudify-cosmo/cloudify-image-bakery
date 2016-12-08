@@ -1,6 +1,5 @@
 {
   "variables": {
-    "name_prefix": "cloudify marketplace",
     "aws_ssh_username": "centos",
     "aws_access_key": "AWS ACCESS KEY NOT PROVIDED",
     "aws_secret_key": "AWS SECRET KEY NOT PROVIDED",
@@ -26,10 +25,10 @@
     "cloudify_manager_password": "cloudify",
     "cloudify_broker_username": "cloudify",
     "cloudify_broker_password": "cloudify",
-    "cloudify_version": "{{user `cloudify_version`}}",
     "cloudify_cli_package_url": "CLOUDIFY CLI PACKAGE URL NOT SET",
     "cloudify_edition": "CLOUDIFY EDITION NOT SET",
-    "perform_cleanup": "true"
+    "perform_cleanup": "true",
+    "image_name": "cloudify-manager"
   },
   "builders": [
     {
@@ -42,7 +41,7 @@
       "instance_type": "{{user `aws_instance_type`}}",
       "ssh_username": "{{user `aws_ssh_username`}}",
       "ssh_pty": "true",
-      "ami_name": "{{user `name_prefix`}} {{timestamp}}"
+      "ami_name": "{{user `image_name`}} {{timestamp}}"
     },
     {
       "name": "openstack",
@@ -60,7 +59,7 @@
       "floating_ip_pool": "{{user `openstack_floating_ip_pool_name`}}",
       "networks": ["{{user `openstack_network`}}"],
       "security_groups": ["{{user `openstack_security_group`}}"],
-      "image_name": "cloudify-manager-{{user `cloudify_edition`}}-{{user `cloudify_version`}}"
+      "image_name": "{{user `image_name`}}"
     },
     {
       "name": "vsphere",
@@ -124,7 +123,6 @@
     {
       "type": "shell",
       "environment_vars": [
-        "CORE_TAG_NAME={{user `cloudify_version`}}",
         "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
         "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
         "CLOUDIFY_BROKER_USERNAME={{user `cloudify_broker_username`}}",
