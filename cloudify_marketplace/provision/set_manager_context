@@ -3,6 +3,7 @@ import os
 
 from cloudify_rest_client import CloudifyClient
 from cloudify_cli import env
+from cloudify_cli import constants
 import yaml
 
 MANAGER_BLUEPRINTS_PATH = '/opt/cfy/cloudify-manager-blueprints'
@@ -13,6 +14,7 @@ def update_context(platform):
         username=os.environ['CLOUDIFY_MANAGER_USERNAME'],
         password=os.environ['CLOUDIFY_MANAGER_PASSWORD'],
     )
+    auth_header[constants.CLOUDIFY_TENANT_HEADER] = 'default_tenant'
     # sudo_user = os.environ.get('SUDO_USER')
     # if sudo_user is not None:
     #     home = '~{}'.format(sudo_user)
