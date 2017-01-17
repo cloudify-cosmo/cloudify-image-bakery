@@ -1,0 +1,19 @@
+plugins:
+  azure_dependencies:
+    executor: central_deployment_agent
+    source: azure_dependencies
+
+node_types:
+  cloudify.azure_dependencies.Install:
+    derived_from: cloudify.nodes.Root
+    # These interfaces are needed to force installation of the plugins
+    interfaces:
+      force_install_requests_ignore_this:
+        install:
+          implementation: azure_dependencies.requests
+      force_install_pyyaml_ignore_this:
+        install:
+          implementation: azure_dependencies.pyyaml
+      force_install_storage_ignore_this:
+        install:
+          implementation: azure_dependencies.storage

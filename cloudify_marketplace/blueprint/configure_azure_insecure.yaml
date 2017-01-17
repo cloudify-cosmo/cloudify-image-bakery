@@ -1,0 +1,91 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.4m5/types.yaml
+  - dependencies/azure_dependencies.yaml
+
+inputs:
+
+  user_ssh_key:
+    type: string
+    default: ''
+    description: >
+      SSH key to authorize for access to the centos user account.
+
+  agents_keypair_name:
+    type: string
+    default: cloudify-agents-keypair
+    description: >
+      Keypair to be generated and used for accessing agents on VMs.
+
+  agents_user:
+    type: string
+    default: centos
+    description: >
+      User to be used for accessing agents on VMs.
+
+  subscription_id:
+    type: string
+    description: >
+      subscription id to use when accessing Azure API.
+
+  tenant_id:
+    type: string
+    description: >
+      tenant id to use when accessing Azure API.
+
+  client_id:
+    type: string
+    description: >
+      client id to use when accessing Azure API.
+
+  client_secret:
+    type: string
+    description: >
+      client secret key to use when accessing Azure API.
+
+  location:
+    type: string
+    default: East US
+
+  agents_to_manager_inbound_ports:
+    type: string
+    description: >
+      Comma separated list of tcp ports to allow from the agents
+      to the manager.
+    default: 5672,8101,53229
+
+node_templates:
+
+  general_configuration:
+    type: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/configure.py
+          executor: central_deployment_agent
+          inputs:
+            user_ssh_key: { get_input: user_ssh_key }
+
+  azure_configuration:
+    type: cloudify.nodes.Root
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/configure_azure.py
+          executor: central_deployment_agent
+          inputs:
+            agents_keypair_name: { get_input: agents_keypair_name }
+            agents_user: { get_input: agents_user }
+            subscription_id: { get_input: subscription_id }
+            tenant_id: { get_input: tenant_id }
+            client_id: { get_input: client_id }
+            client_secret: { get_input: client_secret }
+            agents_to_manager_inbound_ports: { get_input: agents_to_manager_inbound_ports }
+    relationships:
+      - type: cloudify.relationships.depends_on
+        target: general_configuration
+
+outputs:
+  manager_public_cert:
+    value: { get_attribute: [general_configuration, manager_public_cert] }

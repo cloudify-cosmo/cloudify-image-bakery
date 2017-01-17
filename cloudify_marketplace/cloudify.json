@@ -1,6 +1,7 @@
 {
   "variables": {
     "name_prefix": "cloudify marketplace",
+    "azure_name_prefix": "cloudify_marketplace",
     "aws_ssh_username": "centos",
     "aws_access_key": "AWS ACCESS KEY NOT PROVIDED",
     "aws_secret_key": "AWS SECRET KEY NOT PROVIDED",
@@ -19,6 +20,22 @@
     "openstack_floating_ip_pool_name": "OPENSTACK FLOATING IP POOL NAME NOT SET",
     "openstack_network": "OPENSTACK NETWORK NOT SET",
     "openstack_security_group": "OPENSTACK SECURITY GROUP NOT SET",
+    "azure_ssh_username": "centos",
+    "azure_location": "East US",
+    "azure_client_id": "AZURE CLIENT ID NOT PROVIDED",
+    "azure_client_secret": "AZURE CLIENT SECRET NOT PROVIDED",
+    "azure_tenant_id": "AZURE TENANT ID NOT PROVIDED",
+    "azure_subscription_id": "AZURE SUBSCRIPTION ID NOT PROVIDED",
+    "azure_storage_account": "AZURE STORAGE ACCOUNT NOT PROVIDED",
+    "azure_resource_group": "AZURE RESOURCE GROUP NOT PROVIDED",
+    "azure_storage_account_container": "images",
+    "azure_os_type": "Linux",
+    "azure_instance_size": "Large",
+    "azure_vm_size": "Standard_A3",
+    "azure_os_image_label": "OpenLogic 7.1",
+    "azure_os_image_publisher": "OpenLogic",
+    "azure_os_image_offer": "CentOS",
+    "azure_os_image_sku": "7.1",
     "vsphere_vm_ip_address": "VSPHERE VM IP NOT SET",
     "vsphere_vm_ssh_username": "centos",
     "vsphere_vm_ssh_password": "VSPHERE VM SSH PASSWORD NOT SET",
@@ -26,7 +43,7 @@
     "cloudify_manager_password": "cloudify",
     "cloudify_broker_username": "cloudify",
     "cloudify_broker_password": "cloudify",
-    "cloudify_manager_security_enabled": "true",
+    "cloudify_manager_security_enabled": "false",
     "cloudify_version": "{{user `cloudify_version`}}",
     "perform_cleanup": "true"
   },
@@ -62,6 +79,26 @@
       "image_name": "{{user `name_prefix`}} {{timestamp}}"
     },
     {
+      "name": "azure",
+      "type": "azure-arm",
+      "ssh_username": "{{user `azure_ssh_username`}}",
+      "ssh_pty": "true",
+      "location": "{{user `azure_location`}}",
+      "client_id": "{{user `azure_client_id`}}",
+      "client_secret": "{{user `azure_client_secret`}}",
+      "resource_group_name": "{{user `azure_resource_group`}}",
+      "subscription_id": "{{user `azure_subscription_id`}}",
+      "tenant_id": "{{user `azure_tenant_id`}}",
+      "capture_container_name": "{{user `azure_storage_account_container`}}",
+      "capture_name_prefix": "{{user `azure_name_prefix`}}",
+      "image_publisher": "{{user `azure_os_image_publisher`}}",
+      "image_offer": "{{user `azure_os_image_offer`}}",
+      "image_sku": "{{user `azure_os_image_sku`}}",
+      "storage_account": "{{user `azure_storage_account`}}",
+      "os_type": "{{user `azure_os_type`}}",
+      "vm_size": "{{user `azure_vm_size`}}"
+    },
+    {
       "name": "vsphere",
       "type": "null",
       "ssh_pty": "true",
@@ -77,7 +114,13 @@
     },
     {
       "type": "shell",
-      "script": "provision/os_configure"
+      "script": "provision/os_configure",
+      "except": ["azure"]
+    },
+    {
+      "type": "shell",
+      "script": "provision/azure_os_configure",
+      "only": ["azure"]
     },
     {
       "type": "file",
@@ -186,6 +229,15 @@
         "PERFORM_CLEANUP={{user `perform_cleanup`}}"
       ],
       "script": "provision/cleanup"
+    },
+    {
+      "execute_command": "echo '{{user `ssh_pass`}}' | {{ .Vars }} sudo -S -E sh '{{ .Path }}'",
+      "inline": [
+        "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync && sudo hostnamectl set-hostname cloudify"
+      ],
+      "inline_shebang": "/bin/sh -x",
+      "type": "shell",
+      "skip_clean": true
     }
   ]
 }

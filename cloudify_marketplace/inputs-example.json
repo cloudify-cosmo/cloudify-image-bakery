@@ -25,6 +25,14 @@
   "openstack_network": "OPENSTACK NETWORK ID",
   "openstack_security_group": "OPENSTACK SECURITY GROUP ID",
 
+  "azure_ssh_username": "centos",
+  "azure_client_id": "AZURE CLIENT ID NOT PROVIDED",
+  "azure_client_secret": "AZURE CLIENT SECRET NOT PROVIDED",
+  "azure_tenant_id": "AZURE TENANT ID NOT PROVIDED",
+  "azure_subscription_id": "AZURE SUBSCRIPTION ID NOT PROVIDED",
+  "azure_storage_account": "AZURE STORAGE ACCOUNT NOT PROVIDED",
+  "azure_resource_group_name": "AZURE RESOURCE GROUP NOT PROVIDED",
+
   "vsphere_vm_ip_address": "REQUIRED FOR VSPHERE: IP OF VSPHERE VM FOR SSH",
   "vsphere_vm_ssh_username": "REQUIRED FOR VSPHERE: USERNAME FOR VSPHERE VM",
   "vsphere_vm_ssh_password": "REQUIRED FOR VSPHERE: PASSWORD FOR VSPHERE VM"

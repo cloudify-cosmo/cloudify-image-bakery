@@ -5,11 +5,7 @@ set -e
 sudo setenforce 0
 sudo sed -ri 's/SELINUX=.+/SELINUX=disabled/' /etc/selinux/config
 
-# Set hostname
-echo preserve_hostname: True | sudo tee /etc/cloud/cloud.cfg.d/99_hostname.cfg
-
 # Disable requiretty for future fabric calls
 sudo sed -i -e 's/^Defaults.*requiretty/# Defaults requiretty/g' /etc/sudoers
 
-# Make sure all packages are up to date
-sudo yum update -y
+sudo hostnamectl set-hostname cloudify

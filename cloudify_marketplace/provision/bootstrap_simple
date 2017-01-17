@@ -68,7 +68,8 @@ ${broker_cert_private}
 rabbitmq_cert_public: |
 ${broker_cert_public}
 rabbitmq_username: ${CLOUDIFY_BROKER_USERNAME}
-rabbitmq_password: ${CLOUDIFY_BROKER_PASSWORD}" > ~/cloudify//bootstrap_inputs.yaml
+rabbitmq_password: ${CLOUDIFY_BROKER_PASSWORD}
+ignore_bootstrap_validations: true" > ~/cloudify/bootstrap_inputs.yaml
 }
 
 function generate_certs
@@ -145,7 +146,7 @@ CFY_VENV="$HOME/cfy"
 CFY_ENV="$HOME/cloudify"
 if [ -z "$CORE_TAG_NAME" ]; then
   echo "### Building from master branch ###"
-  CORE_TAG_NAME="master"
+  CORE_TAG_NAME="3.4"
 fi
 
 install_prereqs
