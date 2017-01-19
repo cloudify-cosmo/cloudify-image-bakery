@@ -53,10 +53,21 @@ function get_manager_blueprints
 {
     cd ~/cloudify
 	echo "Retrieving Manager Blueprints"
-    sudo curl -OL https://github.com/cloudify-cosmo/cloudify-manager-blueprints/archive/${CORE_TAG_NAME}.tar.gz &&
+	if [ $REPO == "cloudify-versions" ]; then
+	    sudo curl -OL https://github.com/cloudify-cosmo/cloudify-manager-blueprints/archive/master.tar.gz
+	    REPO_TAG="master"
+	else
+        sudo curl -OL https://github.com/cloudify-cosmo/cloudify-manager-blueprints/archive/${CORE_TAG_NAME}.tar.gz
+        REPO_TAG=$CORE_TAG_NAME
+    fi
+    curl -u $GITHUB_USERNAME:$GITHUB_PASSWORD https://raw.githubusercontent.com/cloudify-cosmo/${REPO}/${REPO_TAG}/packages-urls/manager-single-tar.yaml -o /tmp/manager-single-tar.yaml &&
+    single_tar_url=$(cat /tmp/manager-single-tar.yaml) &&
     sudo tar -zxvf ${CORE_TAG_NAME}.tar.gz &&
+    sed -i "s|.*cloudify-manager-resources.*|    default: $single_tar_url|g" cloudify-manager-blueprints-*/inputs/manager-inputs.yaml &&
     mv cloudify-manager-blueprints-*/ cloudify-manager-blueprints
-    sudo rm ${CORE_TAG_NAME}.tar.gz
+    #sudo rm *.tar.gz
+    echo "ls -l"
+    ls -l
 }
 
 function generate_keys
@@ -115,6 +126,9 @@ function configure_shell_login
 INSTALL_FROM_PYPI=$1
 echo "Install from PyPI: ${INSTALL_FROM_PYPI}"
 CORE_TAG_NAME="master"
+export REPO=$1
+export GITHUB_USERNAME=$2
+export GITHUB_PASSWORD=$3
 
 set_username
 install_prereqs

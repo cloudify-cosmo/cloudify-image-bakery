@@ -18,7 +18,9 @@
 
 AWS_ACCESS_KEY_ID = ENV['AWS_ACCESS_KEY_ID']
 AWS_ACCESS_KEY = ENV['AWS_ACCESS_KEY']
-
+REPO = ENV['REPO']
+GITHUB_USERNAME = ENV['GITHUB_USERNAME']
+GITHUB_PASSWORD = ENV['GITHUB_PASSWORD']
 UBUNTU_TRUSTY_BOX_NAME = 'ubuntu/trusty64'
 
 Vagrant.configure('2') do |config|
@@ -33,6 +35,7 @@ Vagrant.configure('2') do |config|
     local.vm.provision "shell" do |s|
       s.path = "common.sh"
       s.privileged = false
+      s.args = ""#{REPO} #{GITHUB_USERNAME} #{GITHUB_PASSWORD}"
     end
   end
 end
