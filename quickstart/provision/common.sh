@@ -65,7 +65,11 @@ function get_manager_blueprints
     sudo tar -zxvf ${CORE_TAG_NAME}.tar.gz &&
     sudo sed -i "s|.*cloudify-manager-resources.*|    default: $single_tar_url|g" cloudify-manager-blueprints-*/inputs/manager-inputs.yaml &&
     mv cloudify-manager-blueprints-*/ cloudify-manager-blueprints
+    # limor
+    cat cloudify-manager-blueprints/inputs/manager-inputs.yaml
     sudo rm *.tar.gz
+    # limor
+    ls -l
 
 }
 
