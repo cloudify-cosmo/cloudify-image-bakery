@@ -60,8 +60,10 @@ function get_manager_blueprints
         sudo curl -OL https://github.com/cloudify-cosmo/cloudify-manager-blueprints/archive/$CORE_TAG_NAME.tar.gz
         REPO_TAG=$CORE_TAG_NAME
     fi
+    echo "curl -u $GITHUB_USERNAME:$GITHUB_PASSWORD https://raw.githubusercontent.com/cloudify-cosmo/$REPO/$REPO_TAG/packages-urls/manager-single-tar.yaml -o manager-single-tar.yaml"
     curl -u $GITHUB_USERNAME:$GITHUB_PASSWORD https://raw.githubusercontent.com/cloudify-cosmo/$REPO/$REPO_TAG/packages-urls/manager-single-tar.yaml -o manager-single-tar.yaml &&
     single_tar_url=$(cat manager-single-tar.yaml) &&
+    echo "single_tar_url=$single_tar_url"
     sudo tar -zxvf $REPO_TAG.tar.gz &&
     sudo sed -i "s|.*cloudify-manager-resources.*|    default: $single_tar_url|g" cloudify-manager-blueprints-*/inputs/manager-inputs.yaml &&
     mv cloudify-manager-blueprints-*/ cloudify-manager-blueprints
