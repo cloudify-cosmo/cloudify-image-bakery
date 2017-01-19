@@ -63,7 +63,7 @@ function get_manager_blueprints
     curl -u $GITHUB_USERNAME:$GITHUB_PASSWORD https://raw.githubusercontent.com/cloudify-cosmo/$REPO/$REPO_TAG/packages-urls/manager-single-tar.yaml -o manager-single-tar.yaml &&
     single_tar_url=$(cat manager-single-tar.yaml) &&
     sudo tar -zxvf $REPO_TAG.tar.gz &&
-    sed -i "s|.*cloudify-manager-resources.*|    default: $single_tar_url|g" cloudify-manager-blueprints-*/inputs/manager-inputs.yaml &&
+    sudo sed -i "s|.*cloudify-manager-resources.*|    default: $single_tar_url|g" cloudify-manager-blueprints-*/inputs/manager-inputs.yaml &&
     mv cloudify-manager-blueprints-*/ cloudify-manager-blueprints
     # limor
     cat cloudify-manager-blueprints/inputs/manager-inputs.yaml
