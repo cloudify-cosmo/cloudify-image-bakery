@@ -128,7 +128,7 @@ function configure_shell_login
 	echo "cd ~/cloudify" >> /home/${USERNAME}/.bashrc
 }
 
-INSTALL_FROM_PYPI=$1
+# INSTALL_FROM_PYPI=$1
 echo "Install from PyPI: ${INSTALL_FROM_PYPI}"
 CORE_TAG_NAME="master"
 export REPO=$1
