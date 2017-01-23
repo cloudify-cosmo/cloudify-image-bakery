@@ -20,6 +20,10 @@ RESOURCES = []
 
 def main():
     print('Starting nightly build: {}'.format(strftime("%Y-%m-%d %H:%M:%S")))
+    print(os.environ.get('REPO'))
+    print(os.environ.get('GITHUB_USERNAME'))
+    print(os.environ.get('GITHUB_PASSWORD'))
+
     # os.environ["REPO"] = os.environ.get('REPO')
     # os.environ["GITHUB_USERNAME"] = os.environ.get('GITHUB_USERNAME')
     # os.environ["GITHUB_PASSWORD"] = os.environ.get('GITHUB_PASSWORD')
