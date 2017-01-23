@@ -33,7 +33,6 @@ Vagrant.configure('2') do |config|
     local.vm.provision "shell" do |s|
       s.path = "common.sh"
       s.privileged = false
-      s.args = "#{REPO} #{GITHUB_USERNAME} #{GITHUB_PASSWORD}"
     end
   end
 end
