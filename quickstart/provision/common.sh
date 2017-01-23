@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # accepted arguments
 # $1 = true iff install from PYPI
