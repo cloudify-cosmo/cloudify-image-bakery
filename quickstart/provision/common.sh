@@ -131,9 +131,9 @@ function configure_shell_login
 # INSTALL_FROM_PYPI=$1
 echo "Install from PyPI: ${INSTALL_FROM_PYPI}"
 CORE_TAG_NAME="master"
-export REPO=$1
-export GITHUB_USERNAME=$2
-export GITHUB_PASSWORD=$3
+export REPO=""
+export GITHUB_USERNAME=""
+export GITHUB_PASSWORD=""
 
 set_username
 install_prereqs
