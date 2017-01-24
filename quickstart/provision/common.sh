@@ -124,8 +124,9 @@ function configure_shell_login
 }
 
 # INSTALL_FROM_PYPI=$1
-echo "Install from PyPI: ${INSTALL_FROM_PYPI}"
-CORE_TAG_NAME="master"
+
+# These variables are set through Jenkins job
+CORE_TAG_NAME=""
 export REPO=""
 export GITHUB_USERNAME=""
 export GITHUB_PASSWORD=""
