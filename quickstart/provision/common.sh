@@ -85,6 +85,8 @@ function configure_manager_blueprint_inputs
 	echo "private_ip: '127.0.0.1'" >> inputs.yaml
 	echo "ssh_user: '${USERNAME}'" >> inputs.yaml
 	echo "ssh_key_filename: '/home/${USERNAME}/.ssh/id_rsa'" >> inputs.yaml
+	echo "admin_username: 'cloudify'" >> inputs.yaml
+	echo "admin_password: 'cloudify'" >> inputs.yaml
 }
 
 function bootstrap
