@@ -1,9 +1,0 @@
-#! /usr/bin/env bash
-set -e
-
-for platform in $(ls dependencies); do
-  mkdir ${platform}_dependencies
-  cp dependencies/${platform} ${platform}_dependencies/setup.py
-  tar -czf blueprint/plugins/${platform}_dependencies.tar.gz ${platform}_dependencies/setup.py
-  rm -rf ${platform}_dependencies
-done

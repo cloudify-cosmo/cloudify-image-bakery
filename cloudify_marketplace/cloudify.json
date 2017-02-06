@@ -72,53 +72,8 @@
   ],
   "provisioners": [
     {
-      "type": "shell-local",
-      "command": "provision_local/make_dependencies"
-    },
-    {
       "type": "shell",
       "script": "provision/os_configure"
-    },
-    {
-      "type": "file",
-      "source": "resources/get_first_external_ip",
-      "destination": "/tmp/get_first_external_ip"
-    },
-    {
-      "type": "shell",
-      "script": "provision/enable_usr_local_script",
-      "environment_vars": "SCRIPT_NAME=get_first_external_ip"
-    },
-    {
-      "type": "file",
-      "source": "resources/fix_cloudify_ip_configurations",
-      "destination": "/tmp/fix_cloudify_ip_configurations"
-    },
-    {
-      "type": "shell",
-      "script": "provision/enable_usr_local_script",
-      "environment_vars": "SCRIPT_NAME=fix_cloudify_ip_configurations"
-    },
-    {
-      "type": "file",
-      "source": "resources/update-cloudify-env.service",
-      "destination": "/tmp/update-cloudify-env.service"
-    },
-    {
-      "type": "shell",
-      "script": "provision/enable_systemd_service",
-      "environment_vars": "SERVICE_NAME=update-cloudify-env.service"
-    },
-    {
-      "type": "file",
-      "source": "blueprint",
-      "destination": "/tmp/blueprint_configure"
-    },
-    {
-      "type": "shell",
-      "inline": [
-        "sudo mv /tmp/blueprint_configure /opt/cloudify_configuration"
-      ]
     },
     {
       "type": "shell",
@@ -130,35 +85,6 @@
         "CLI_PACKAGE_URL={{user `cloudify_cli_package_url`}}"
       ],
       "script": "provision/bootstrap_simple"
-    },
-    {
-      "type": "shell",
-      "script": "provision/upload_blueprint",
-      "environment_vars": [
-        "BLUEPRINT_PATH=/opt/cloudify_configuration",
-        "BLUEPRINT_FILE_NAME_PREFIX=configure",
-        "BLUEPRINT_NAME=CloudifySettings",
-        "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
-        "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}"
-      ]
-    },
-    {
-      "type": "file",
-      "source": "blueprint/plugins",
-      "destination": "/tmp/dependencies"
-    },
-    {
-      "type": "shell",
-      "script": "provision/install_dependencies"
-    },
-    {
-      "type": "shell",
-      "script": "provision/set_manager_context",
-      "environment_vars": [
-        "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
-        "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}"
-      ],
-      "execute_command": "{{ .Vars }} sudo -E /opt/cfy/embedded/bin/python {{ .Path }}"
     },
     {
       "type": "shell",
