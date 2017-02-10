@@ -68,6 +68,8 @@ function bootstrap
     exit 1
   fi
 
+  # configure cli for root user
+  sudo -u root cfy profiles use localhost -u ${CLOUDIFY_MANAGER_USERNAME} -p ${CLOUDIFY_MANAGER_PASSWORD} -t default_tenant
   echo "bootstrap done."
 }
 
