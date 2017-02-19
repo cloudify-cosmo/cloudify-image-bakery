@@ -8,18 +8,6 @@ INPUTS_FILE_PATH="/home/${USER}/bootstrap_inputs.yaml"
 CFY_VENV="/opt/cfy/embedded"
 
 
-sudo yum install -y git gcc python-devel
-
-
-function install_prereqs
-{
-  echo installing prerequisites
-
-  sudo yum install -y git gcc python-devel
-  curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo python
-  sudo pip install virtualenv
-}
-
 function install_cli
 {
   echo "Downloading Cloudify's CLI from: ${CLI_PACKAGE_URL}"
