@@ -66,11 +66,6 @@
     },
     {
       "type": "shell",
-      "inline": ["sudo sed -i -r 's/ES_HEAP_SIZE=.+/ES_HEAP_SIZE=512m/' /etc/sysconfig/elasticsearch"],
-      "only": ["nightly_virtualbox_build"]
-    },
-    {
-      "type": "shell",
       "inline": ["sudo reboot"],
       "only": ["nightly_virtualbox_build"]
     },
