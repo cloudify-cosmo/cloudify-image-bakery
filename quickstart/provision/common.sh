@@ -16,7 +16,7 @@ function set_username
 function install_prereqs
 {
 	echo installing prerequisites
-	sudo yum install -y git gcc python-devel
+	sudo yum install -y git gcc python-devel libffi-devel openssl-devel
 }
 
 function install_pip
