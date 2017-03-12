@@ -5,7 +5,7 @@ function install_prereqs
 {
   echo installing prerequisites
 
-  sudo yum install -y git gcc python-devel
+  sudo yum install -y git gcc python-devel unzip
   curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo python
   sudo pip install virtualenv
 }
