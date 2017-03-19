@@ -49,12 +49,29 @@ function bootstrap
 
   echo "bootstrapping..."
   # bootstrap the manager locally
-  cfy bootstrap ${MANAGER_BLUEPRINT_PATH} -i ${INPUTS_FILE_PATH} -v
+  set +e
+  cfy bootstrap ${MANAGER_BLUEPRINT_PATH} -i ${INPUTS_FILE_PATH} -v --keep-up-on-failure
   if [ "$?" -ne "0" ]; then
-    echo "Bootstrap failed, stopping provision."
+    echo "Bootstrap failed, attempting to get more information about the failure..."
+    echo "Running cfy profiles use.."
+    cfy profiles use localhost -u ${CLOUDIFY_MANAGER_USERNAME} -p ${CLOUDIFY_MANAGER_PASSWORD} -t default_tenant
+    if [ "$?" -eq "0" ]; then
+      echo "Running cfy status.."
+      cfy status
+      echo "Running cfy status.."
+      cfy deployments list
+      echo "Running cfy executions list for sanity deployment.."
+      cfy executions list -d sanity_deployment
+      if [ -f /var/log/cloudify/mgmtworker/cloudify.management_worker.log ]; then
+        echo "Printing /var/log/cloudify/mgmtworker/cloudify.management_worker.log to console.."
+        cat /var/log/cloudify/mgmtworker/cloudify.management_worker.log
+      fi
+    fi
+    echo "bootstrap failed!"
     exit 1
   fi
-
+  
+  set -e
   # configure cli for root user
   sudo -u root cfy profiles use localhost -u ${CLOUDIFY_MANAGER_USERNAME} -p ${CLOUDIFY_MANAGER_PASSWORD} -t default_tenant
   echo "bootstrap done."
