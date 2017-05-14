@@ -35,10 +35,7 @@ ssl_enabled: false
 admin_username: ${CLOUDIFY_MANAGER_USERNAME}
 admin_password: ${CLOUDIFY_MANAGER_PASSWORD}
 
-set_manager_ip_on_boot: true
-
-rabbitmq_username: ${CLOUDIFY_BROKER_USERNAME}
-rabbitmq_password: ${CLOUDIFY_BROKER_PASSWORD}" > ${INPUTS_FILE_PATH}
+set_manager_ip_on_boot: true" > ${INPUTS_FILE_PATH}
 }
 
 

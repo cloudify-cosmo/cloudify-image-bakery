@@ -23,8 +23,6 @@
     "vsphere_vm_ssh_password": "VSPHERE VM SSH PASSWORD NOT SET",
     "cloudify_manager_username": "admin",
     "cloudify_manager_password": "admin",
-    "cloudify_broker_username": "cloudify",
-    "cloudify_broker_password": "cloudify",
     "cloudify_cli_package_url": "CLOUDIFY CLI PACKAGE URL NOT SET",
     "cloudify_edition": "CLOUDIFY EDITION NOT SET",
     "perform_cleanup": "true",
@@ -80,8 +78,6 @@
       "environment_vars": [
         "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
         "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
-        "CLOUDIFY_BROKER_USERNAME={{user `cloudify_broker_username`}}",
-        "CLOUDIFY_BROKER_PASSWORD={{user `cloudify_broker_password`}}",
         "CLI_PACKAGE_URL={{user `cloudify_cli_package_url`}}"
       ],
       "script": "provision/bootstrap_simple"
