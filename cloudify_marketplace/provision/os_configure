@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-# disable selinux
-sudo setenforce 0
-sudo sed -ri 's/SELINUX=.+/SELINUX=disabled/' /etc/selinux/config
-
 # Set hostname
 sudo hostnamectl set-hostname cloudify
 echo preserve_hostname: True | sudo tee /etc/cloud/cloud.cfg.d/99_hostname.cfg
@@ -13,4 +9,13 @@ echo preserve_hostname: True | sudo tee /etc/cloud/cloud.cfg.d/99_hostname.cfg
 sudo sed -i -e 's/^Defaults.*requiretty/# Defaults requiretty/g' /etc/sudoers
 
 # Make sure all packages are up to date
-sudo yum update -y
+yum_log=$(mktemp)
+sudo yum update -y --rpmverbosity=debug 2>&1 | tee "$yum_log"
+
+# Check for "Non-fatal" errors because yum won't
+if $(grep -i 'non-fatal' "$yum_log")
+then
+    rm "$yum_log"
+    echo "yum failed to install all packages cleanly"
+    exit 1
+fi
