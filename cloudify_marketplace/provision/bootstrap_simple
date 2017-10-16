@@ -6,7 +6,7 @@ MANAGER_BLUEPRINTS_PATH="/opt/cfy/cloudify-manager-blueprints"
 MANAGER_BLUEPRINT_PATH="${MANAGER_BLUEPRINTS_PATH}/simple-manager-blueprint.yaml"
 INPUTS_FILE_PATH="/home/${USER}/bootstrap_inputs.yaml"
 CFY_VENV="/opt/cfy/embedded"
-
+SKIP_VALIDATION="${CLOUDIFY_BOOTSTRAP_SKIP_VALIDATION}"
 
 function install_cli
 {
@@ -47,7 +47,11 @@ function bootstrap
   echo "bootstrapping..."
   # bootstrap the manager locally
   set +e
-  cfy bootstrap ${MANAGER_BLUEPRINT_PATH} -i ${INPUTS_FILE_PATH} -v --keep-up-on-failure
+  if [ "${SKIP_VALIDATION}" == "true" ] ; then
+    cfy bootstrap ${MANAGER_BLUEPRINT_PATH} -i ${INPUTS_FILE_PATH} -v --keep-up-on-failure --skip-validations
+  else
+    cfy bootstrap ${MANAGER_BLUEPRINT_PATH} -i ${INPUTS_FILE_PATH} -v --keep-up-on-failure
+  fi
   if [ "$?" -ne "0" ]; then
     echo "Bootstrap failed, attempting to get more information about the failure..."
     echo "Running cfy profiles use.."
