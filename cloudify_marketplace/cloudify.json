@@ -26,7 +26,8 @@
     "cloudify_cli_package_url": "CLOUDIFY CLI PACKAGE URL NOT SET",
     "cloudify_edition": "CLOUDIFY EDITION NOT SET",
     "perform_cleanup": "true",
-    "image_name": "cloudify-manager"
+    "image_name": "cloudify-manager",
+    "bootstrap_skip_validation": "false"
   },
   "builders": [
     {
@@ -78,6 +79,7 @@
       "environment_vars": [
         "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
         "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
+        "CLOUDIFY_BOOTSTRAP_SKIP_VALIDATION={{user `bootstrap_skip_validation`}}",
         "CLI_PACKAGE_URL={{user `cloudify_cli_package_url`}}"
       ],
       "script": "provision/bootstrap_simple"
