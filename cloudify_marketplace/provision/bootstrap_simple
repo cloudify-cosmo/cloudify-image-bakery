@@ -1,20 +1,17 @@
 #!/bin/bash
 set -e
 
-CLI_RPM="cloudify-cli.rpm"
-MANAGER_BLUEPRINTS_PATH="/opt/cfy/cloudify-manager-blueprints"
-MANAGER_BLUEPRINT_PATH="${MANAGER_BLUEPRINTS_PATH}/simple-manager-blueprint.yaml"
-INPUTS_FILE_PATH="/home/${USER}/bootstrap_inputs.yaml"
-CFY_VENV="/opt/cfy/embedded"
-SKIP_VALIDATION="${CLOUDIFY_BOOTSTRAP_SKIP_VALIDATION}"
+INSTALL_RPM="cloudify-manager-install.rpm"
+CONFIG_FILE_PATH="/opt/cloudify-manager-install/config.yaml"
 
-function install_cli
+
+function install_rpm
 {
-  echo "Downloading Cloudify's CLI from: ${CLI_PACKAGE_URL}"
-  curl ${CLI_PACKAGE_URL} -o ${CLI_RPM} -s
+  echo "Downloading Cloudify's install RPM from: ${INSTALL_RPM_URL}"
+  curl ${INSTALL_RPM_URL} -o ${INSTALL_RPM} -s
 
-  echo "Installing Cloudify's CLI..."
-  sudo rpm -i ${CLI_RPM}
+  echo "Installing Cloudify Manager..."
+  sudo rpm -i ${INSTALL_RPM}
 }
 
 function generate_keys
@@ -24,36 +21,29 @@ function generate_keys
   cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 }
 
-function create_inputs
+function create_config
 {
-  echo "public_ip: 127.0.0.1
-private_ip: 127.0.0.1
-ssh_user: ${USER}
-ssh_key_filename: /home/${USER}/.ssh/id_rsa
-
-ssl_enabled: false
-admin_username: ${CLOUDIFY_MANAGER_USERNAME}
-admin_password: ${CLOUDIFY_MANAGER_PASSWORD}
-
-set_manager_ip_on_boot: true" > ${INPUTS_FILE_PATH}
+  echo "Creating install config file..."
+  echo "manager:
+  private_ip: 127.0.0.1
+  public_ip: 127.0.0.1
+  admin_username: ${CLOUDIFY_MANAGER_USERNAME}
+  admin_password: ${CLOUDIFY_MANAGER_PASSWORD}
+  set_manager_ip_on_boot: true
+validations:
+  skip_validations: ${INSTALL_SKIP_VALIDATION}" > ${CONFIG_FILE_PATH}
 }
 
 
-function bootstrap
+function install_manager
 {
-  echo "preparing to bootstrap..."
-  create_inputs
+  echo "Installing Cloudify Manager..."
 
-  echo "bootstrapping..."
   # bootstrap the manager locally
   set +e
-  if [ "${SKIP_VALIDATION}" == "true" ] ; then
-    cfy bootstrap ${MANAGER_BLUEPRINT_PATH} -i ${INPUTS_FILE_PATH} -v --keep-up-on-failure --skip-validations
-  else
-    cfy bootstrap ${MANAGER_BLUEPRINT_PATH} -i ${INPUTS_FILE_PATH} -v --keep-up-on-failure
-  fi
+  cfy_manager install
   if [ "$?" -ne "0" ]; then
-    echo "Bootstrap failed, attempting to get more information about the failure..."
+    echo "Install failed, attempting to get more information about the failure..."
     echo "Running cfy profiles use.."
     cfy profiles use localhost -u ${CLOUDIFY_MANAGER_USERNAME} -p ${CLOUDIFY_MANAGER_PASSWORD} -t default_tenant
     if [ "$?" -eq "0" ]; then
@@ -71,13 +61,11 @@ function bootstrap
     echo "bootstrap failed!"
     exit 1
   fi
-  
+
   set -e
-  # configure cli for root user
-  sudo -u root cfy profiles use localhost -u ${CLOUDIFY_MANAGER_USERNAME} -p ${CLOUDIFY_MANAGER_PASSWORD} -t default_tenant
-  echo "bootstrap done."
 }
 
-install_cli
+install_rpm
 generate_keys
-bootstrap
+create_config
+install_manager
