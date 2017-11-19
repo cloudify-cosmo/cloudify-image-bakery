@@ -10,8 +10,10 @@ function install_rpm
   echo "Downloading Cloudify's install RPM from: ${INSTALL_RPM_URL}"
   curl ${INSTALL_RPM_URL} -o ${INSTALL_RPM} -s
 
-  echo "Installing Cloudify Manager..."
+  echo "Installing RPM..."
   sudo rpm -i ${INSTALL_RPM}
+
+  rm ${INSTALL_RPM}
 }
 
 function generate_keys
@@ -27,11 +29,11 @@ function create_config
   echo "manager:
   private_ip: 127.0.0.1
   public_ip: 127.0.0.1
-  admin_username: ${CLOUDIFY_MANAGER_USERNAME}
-  admin_password: ${CLOUDIFY_MANAGER_PASSWORD}
+  admin_username: ${CLOUDIFY_MANAGER_USERNAME:-admin}
+  admin_password: ${CLOUDIFY_MANAGER_PASSWORD:-admin}
   set_manager_ip_on_boot: true
 validations:
-  skip_validations: ${INSTALL_SKIP_VALIDATION}" > ${CONFIG_FILE_PATH}
+  skip_validations: ${INSTALL_SKIP_VALIDATION:-false}" > ${CONFIG_FILE_PATH}
 }
 
 
@@ -45,7 +47,7 @@ function install_manager
   if [ "$?" -ne "0" ]; then
     echo "Install failed, attempting to get more information about the failure..."
     echo "Running cfy profiles use.."
-    cfy profiles use localhost -u ${CLOUDIFY_MANAGER_USERNAME} -p ${CLOUDIFY_MANAGER_PASSWORD} -t default_tenant
+    cfy profiles use localhost -u ${CLOUDIFY_MANAGER_USERNAME:-admin} -p ${CLOUDIFY_MANAGER_PASSWORD:-admin} -t default_tenant
     if [ "$?" -eq "0" ]; then
       echo "Running cfy status.."
       cfy status
