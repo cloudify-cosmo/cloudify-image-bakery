@@ -82,7 +82,7 @@
         "INSTALL_SKIP_VALIDATION={{user `install_skip_validation`}}",
         "INSTALL_RPM_URL={{user `cloudify_install_rpm_url`}}"
       ],
-      "script": "provision/bootstrap_simple"
+      "script": "provision/install_simple"
     },
     {
       "type": "shell",
