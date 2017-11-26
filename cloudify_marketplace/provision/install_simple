@@ -29,9 +29,10 @@ function create_config
   echo "manager:
   private_ip: 127.0.0.1
   public_ip: 127.0.0.1
+  set_manager_ip_on_boot: true
+security:
   admin_username: ${CLOUDIFY_MANAGER_USERNAME:-admin}
   admin_password: ${CLOUDIFY_MANAGER_PASSWORD:-admin}
-  set_manager_ip_on_boot: true
 validations:
   skip_validations: ${INSTALL_SKIP_VALIDATION:-false}" > ${CONFIG_FILE_PATH}
 }
