@@ -1,11 +1,11 @@
 {
   "name_prefix": "cloudify marketplace",
   "cloudify_version": "VERSION/BRANCH OF CLOUDIFY MANAGER+CLI, E.G. 3.3 OR master",
-  "cloudify_manager_username": "RECOMMENDED (DEFAULT: cloudify): USERNAME TO USE ON CLOUDIFY MANAGER",
-  "cloudify_manager_password": "RECOMMENDED (DEFAULT: cloudify): PASSWORD TO USE ON CLOUDIFY MANAGER",
+  "cloudify_manager_username": "RECOMMENDED (DEFAULT: admin): USERNAME TO USE ON CLOUDIFY MANAGER",
+  "cloudify_manager_password": "RECOMMENDED (DEFAULT: admin): PASSWORD TO USE ON CLOUDIFY MANAGER",
   "cloudify_broker_username": "RECOMMENDED (DEFAULT: cloudify): USERNAME TO USE ON CLOUDIFY BROKER",
   "cloudify_broker_password": "RECOMMENDED (DEFAULT: cloudify): PASSWORD TO USE ON CLOUDIFY BROKER",
-  "cloudify_cli_package_url": "MANDATORY: CLOUDIFY CLI PACKAGE URL",
+  "cloudify_install_rpm_url": "MANDATORY: CLOUDIFY INSTALL RPM URL",
 
   "aws_ssh_username": "centos",
   "aws_access_key": "YOUR AWS ACCESS KEY",

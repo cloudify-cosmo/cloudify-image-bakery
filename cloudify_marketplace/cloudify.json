@@ -23,11 +23,11 @@
     "vsphere_vm_ssh_password": "VSPHERE VM SSH PASSWORD NOT SET",
     "cloudify_manager_username": "admin",
     "cloudify_manager_password": "admin",
-    "cloudify_cli_package_url": "CLOUDIFY CLI PACKAGE URL NOT SET",
+    "cloudify_install_rpm_url": "CLOUDIFY INSTALL RPM URL NOT SET",
     "cloudify_edition": "CLOUDIFY EDITION NOT SET",
     "perform_cleanup": "true",
     "image_name": "cloudify-manager",
-    "bootstrap_skip_validation": "false"
+    "install_skip_validation": "false"
   },
   "builders": [
     {
@@ -79,10 +79,10 @@
       "environment_vars": [
         "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
         "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
-        "CLOUDIFY_BOOTSTRAP_SKIP_VALIDATION={{user `bootstrap_skip_validation`}}",
-        "CLI_PACKAGE_URL={{user `cloudify_cli_package_url`}}"
+        "INSTALL_SKIP_VALIDATION={{user `install_skip_validation`}}",
+        "INSTALL_RPM_URL={{user `cloudify_install_rpm_url`}}"
       ],
-      "script": "provision/bootstrap_simple"
+      "script": "provision/install_simple"
     },
     {
       "type": "shell",
