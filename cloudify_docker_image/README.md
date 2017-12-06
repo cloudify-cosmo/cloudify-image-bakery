@@ -17,5 +17,11 @@
 
 - To create the Cloudify Manager image (you have to first create the base image) run 
     ```
-    sh make_cfy_manager_image.sh <CFY RPM with cfy_manager install>
+    bash make_cfy_manager_image.sh <CFY RPM with cfy_manager install>
     ``` 
+  - Note that you'll need to set the environmental variables `DOCKER_ID_USER` and `DOCKER_ID_PASSWORD` variables with the Docker ID username and password respectively:
+	  ```
+	  export DOCKER_ID_USER="username"
+	  export DOCKER_ID_PASSWORD="password"
+	  ```
+  - You can setup your own tags for the image by adding more items to the array `IMAGE_TAGS`.
