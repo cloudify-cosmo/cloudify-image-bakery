@@ -9,13 +9,13 @@ fi
 CFY_RPM_URL=$1
 CFY_RPM="cloudify-manager-install.rpm"
 CONTAINER_NAME="cfy_manager"
-BASE_IMAGE="cfy_manager_base"
+BASE_IMAGE="centos7_base_image"
 IMAGE_PUB_NAME="docker_cfy_manager"
-declare -a IMAGE_TAGS=( "latest" "centos7_v1.0_manager_v4.3" )
+declare -a IMAGE_TAGS=( "latest_centos_manager" "centos7_v1.0_manager_v4.3" )
 DOCKER_RUN_FLAGS="--name ${CONTAINER_NAME} -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run
  --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN"
 MANAGER_CONFIG_LOCATION="/opt/cloudify"
-DOCKER_REPO="manager_images"
+DOCKER_REPO="premium"
 
 set +u
 if [ -z "$DOCKER_ID_USER" ] || [ -z "$DOCKER_ID_PASSWORD" ];
@@ -46,11 +46,9 @@ docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
 echo "Installing manager..."
 docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install"
 
-echo "The Manager's IP is ${CONTAINER_IP}"
-
 echo "Saving the image..."
-docker stop $CONTAINER_NAME
 docker commit -m "Install CFY manager" $CONTAINER_NAME $IMAGE_PUB_NAME
+docker stop $CONTAINER_NAME
 
 echo "Removing the used container..."
 docker rm $CONTAINER_NAME
