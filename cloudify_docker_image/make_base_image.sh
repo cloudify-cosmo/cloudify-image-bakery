@@ -20,7 +20,7 @@ echo "Building the base image..."
 docker build -t ${BASE_IMAGE} - < Dockerfile
 
 echo "Enabling sshd service to start at boot..."
-docker run ${DOCKER_RUN_FLAGS} ${CONTAINER_NAME}
+docker run ${DOCKER_RUN_FLAGS} ${BASE_IMAGE}
 docker exec -d ${CONTAINER_NAME} sh -c "systemctl enable sshd.service"
 
 echo "Saving the base image..."
