@@ -28,7 +28,7 @@ network adapter's mtu size and edit the docker service file with
 ```
 # The path also might be at /usr/lib/systemd/system/docker.service
 sudo vi /etc/systemd/system/docker.service
-# At 'ExecStart=' add '--metu HOST_MTU_SIZE' flag to the end of the line
+# At 'ExecStart=' add '--mtu HOST_MTU_SIZE' flag to the end of the line
 sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
