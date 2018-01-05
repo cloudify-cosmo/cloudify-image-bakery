@@ -2,7 +2,7 @@
 set -e
 
 INSTALL_RPM="cloudify-manager-install.rpm"
-CONFIG_FILE_PATH="/opt/cloudify/config.yaml"
+CONFIG_FILE_PATH="/etc/cloudify/config.yaml"
 
 
 function install_rpm

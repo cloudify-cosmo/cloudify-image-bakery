@@ -14,7 +14,7 @@ IMAGE_PUB_NAME="docker_cfy_manager"
 declare -a IMAGE_TAGS=( "latest_centos_manager" "centos7_v1.0_manager_v4.3" )
 DOCKER_RUN_FLAGS="--name ${CONTAINER_NAME} -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run
  --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN"
-MANAGER_CONFIG_LOCATION="/opt/cloudify"
+MANAGER_CONFIG_LOCATION="/etc/cloudify"
 DOCKER_REPO="premium"
 
 set +u
