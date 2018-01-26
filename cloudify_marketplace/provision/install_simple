@@ -23,52 +23,15 @@ function generate_keys
   cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 }
 
-function create_config
-{
-  echo "Creating install config file..."
-  echo "manager:
-  private_ip: 127.0.0.1
-  public_ip: 127.0.0.1
-  set_manager_ip_on_boot: true
-  security:
-    admin_username: ${CLOUDIFY_MANAGER_USERNAME:-admin}
-    admin_password: ${CLOUDIFY_MANAGER_PASSWORD:-admin}
-validations:
-  skip_validations: ${INSTALL_SKIP_VALIDATION:-false}" > ${CONFIG_FILE_PATH}
-}
 
-
-function install_manager
+function install_manager_packages
 {
   echo "Installing Cloudify Manager..."
 
   # bootstrap the manager locally
-  set +e
-  cfy_manager install
-  if [ "$?" -ne "0" ]; then
-    echo "Install failed, attempting to get more information about the failure..."
-    echo "Running cfy profiles use.."
-    cfy profiles use localhost -u ${CLOUDIFY_MANAGER_USERNAME:-admin} -p ${CLOUDIFY_MANAGER_PASSWORD:-admin} -t default_tenant
-    if [ "$?" -eq "0" ]; then
-      echo "Running cfy status.."
-      cfy status
-      echo "Running cfy status.."
-      cfy deployments list
-      echo "Running cfy executions list for sanity deployment.."
-      cfy executions list -d sanity_deployment
-      if [ -f /var/log/cloudify/mgmtworker/cloudify.management_worker.log ]; then
-        echo "Printing /var/log/cloudify/mgmtworker/cloudify.management_worker.log to console.."
-        cat /var/log/cloudify/mgmtworker/cloudify.management_worker.log
-      fi
-    fi
-    echo "bootstrap failed!"
-    exit 1
-  fi
-
-  set -e
+  yum install -y /opt/cloudify/sources/*.rpm
 }
 
 install_rpm
+install_manager_packages
 generate_keys
-create_config
-install_manager
