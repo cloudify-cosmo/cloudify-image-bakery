@@ -108,7 +108,7 @@ def run_packer():
 
 
 def do_work():
-    sudo('echo "deb http://download.virtualbox.org/virtualbox/debian trusty contrib" > /etc/apt/sources.list.d/virtualbox.list')
+    sudo('echo "deb http://download.virtualbox.org/virtualbox/debian trusty contrib" > /etc/apt/sources.list.d/virtualbox.list') # noqa
     sudo('wget -q https://www.virtualbox.org/download/oracle_vbox.asc -O- | apt-key add -')
     sudo('apt-get update')
 
@@ -179,6 +179,7 @@ def do_work():
     run('aws s3 cp publish_Vagrantfile s3://{}/{}'.format(
         settings['aws_s3_bucket'], 'Vagrantfile'))
 
+
 def cleanup():
     print('cleaning up..')
     for item in RESOURCES:
@@ -200,6 +201,7 @@ def cleanup():
             print('{} deleted'.format(item))
         else:
             print('{} not cleared'.format(item))
+
 
 try:
     main()

@@ -27,7 +27,9 @@
     "cloudify_edition": "CLOUDIFY EDITION NOT SET",
     "perform_cleanup": "true",
     "image_name": "cloudify-manager",
-    "install_skip_validation": "false"
+    "install_skip_validation": "false",
+    "set_admin_pwd": "false",
+    "set_admin_pwd_url": ""
   },
   "builders": [
     {
@@ -72,14 +74,12 @@
   "provisioners": [
     {
       "type": "shell",
-      "script": "provision/os_configure"
-    },
-    {
-      "type": "shell",
       "environment_vars": [
         "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
         "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
         "INSTALL_SKIP_VALIDATION={{user `install_skip_validation`}}",
+        "SET_ADMIN_PWD={{user `set_admin_pwd`}}",
+        "SET_ADMIN_PWD_URL={{user `set_admin_pwd_url`}}",
         "INSTALL_RPM_URL={{user `cloudify_install_rpm_url`}}"
       ],
       "script": "provision/install_simple"

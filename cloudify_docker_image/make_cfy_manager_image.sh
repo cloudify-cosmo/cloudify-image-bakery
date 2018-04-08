@@ -70,8 +70,11 @@ docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install"
 
 echo "Saving the image..."
 docker commit -m "Install CFY manager" $CONTAINER_NAME $IMAGE_PUB_NAME
-docker stop $CONTAINER_NAME
+for i in "${IMAGE_TAGS[@]}"
+do
+	docker tag $IMAGE_PUB_NAME ${DOCKER_ORGANIZATION}/${DOCKER_REPO}:$i
+done
 
 echo "Removing the used container..."
+docker stop $CONTAINER_NAME
 docker rm $CONTAINER_NAME
-

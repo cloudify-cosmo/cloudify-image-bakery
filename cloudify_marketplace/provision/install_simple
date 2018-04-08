@@ -1,9 +1,35 @@
 #!/bin/bash
-set -e
+set -e -x
 
 INSTALL_RPM="cloudify-manager-install.rpm"
 CONFIG_FILE_PATH="/etc/cloudify/config.yaml"
 
+
+function os_configure
+{
+  # disable selinux
+  sudo setenforce 0
+  sudo sed -ri 's/SELINUX=.+/SELINUX=disabled/' /etc/selinux/config
+
+  # Set hostname
+  sudo hostnamectl set-hostname cloudify
+  echo preserve_hostname: True | sudo tee /etc/cloud/cloud.cfg.d/99_hostname.cfg
+
+  # Disable requiretty for future fabric calls
+  sudo sed -i -e 's/^Defaults.*requiretty/# Defaults requiretty/g' /etc/sudoers
+
+  # Make sure all packages are up to date
+  yum_log=$(mktemp)
+  sudo yum update -y 2>&1 | tee "$yum_log"
+
+  # Check for "Non-fatal" errors because yum won't
+  if $(grep -i 'non-fatal' "$yum_log")
+  then
+      rm "$yum_log"
+      echo "yum failed to install all packages cleanly"
+      exit 1
+  fi
+}
 
 function install_rpm
 {
@@ -37,7 +63,6 @@ validations:
   skip_validations: ${INSTALL_SKIP_VALIDATION:-false}" > ${CONFIG_FILE_PATH}
 }
 
-
 function install_manager
 {
   echo "Installing Cloudify Manager..."
@@ -68,7 +93,24 @@ function install_manager
   set -e
 }
 
-install_rpm
+function set_admin_password
+{
+  echo "Updating admin password to instance-id..."
+
+  curl ${SET_ADMIN_PWD_URL} -o ./set_admin_password.sh
+  bash set_admin_password.sh
+}
+
+
+if [[ "${SET_ADMIN_PWD}" != "true" ]]; then
+    os_configure
+    install_rpm
+fi
 generate_keys
 create_config
-install_manager
+if [[ "${SET_ADMIN_PWD}" != "true" ]]; then
+    install_manager
+fi
+if [[ "${SET_ADMIN_PWD}" == "true" ]]; then
+    set_admin_password
+fi
