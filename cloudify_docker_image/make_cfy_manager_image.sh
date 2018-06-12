@@ -67,6 +67,7 @@ docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
 
 echo "Installing manager..."
 docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install"
+docker exec -t ${CONTAINER_NAME} sh -c "echo 'docker' > /opt/cfy/image.info"
 
 echo "Saving the image..."
 docker commit -m "Install CFY manager" $CONTAINER_NAME $IMAGE_PUB_NAME

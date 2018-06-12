@@ -29,7 +29,8 @@
     "image_name": "cloudify-manager",
     "install_skip_validation": "false",
     "set_admin_pwd": "false",
-    "set_admin_pwd_url": ""
+    "set_admin_pwd_url": "",
+    "provider": ""
   },
   "builders": [
     {
@@ -80,7 +81,8 @@
         "INSTALL_SKIP_VALIDATION={{user `install_skip_validation`}}",
         "SET_ADMIN_PWD={{user `set_admin_pwd`}}",
         "SET_ADMIN_PWD_URL={{user `set_admin_pwd_url`}}",
-        "INSTALL_RPM_URL={{user `cloudify_install_rpm_url`}}"
+        "INSTALL_RPM_URL={{user `cloudify_install_rpm_url`}}",
+        "PROVIDER={{user `provider`}}"
       ],
       "script": "provision/install_simple"
     },
