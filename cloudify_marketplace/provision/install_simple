@@ -59,8 +59,10 @@ function create_config
   security:
     admin_username: ${CLOUDIFY_MANAGER_USERNAME:-admin}
     admin_password: ${CLOUDIFY_MANAGER_PASSWORD:-admin}
-validations:
-  skip_validations: ${INSTALL_SKIP_VALIDATION:-false}" > ${CONFIG_FILE_PATH}
+  validations:
+    skip_validations: ${INSTALL_SKIP_VALIDATION:-false}
+  monitoring_install: &monitoring_install
+      skip_installation: false > config.yaml" > ${CONFIG_FILE_PATH}
 }
 
 function install_manager

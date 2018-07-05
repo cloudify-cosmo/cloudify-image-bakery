@@ -61,7 +61,9 @@ echo "manager:
   public_ip: ${CONTAINER_IP}
   set_manager_ip_on_boot: true
   security:
-    admin_password: admin" > config.yaml
+    admin_password: admin
+  monitoring_install: &monitoring_install
+    skip_installation: false" > config.yaml
 
 docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
 
