@@ -62,7 +62,7 @@ function create_config
   validations:
     skip_validations: ${INSTALL_SKIP_VALIDATION:-false}
   monitoring_install: &monitoring_install
-      skip_installation: false > config.yaml" > ${CONFIG_FILE_PATH}
+      skip_installation: false" > ${CONFIG_FILE_PATH}
 }
 
 function install_manager
