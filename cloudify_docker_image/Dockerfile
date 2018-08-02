@@ -24,6 +24,6 @@ EXPOSE 22 80 443 5671 5672 53333
 # Should help to stop the container gracfully
 STOPSIGNAL SIGRTMIN+3
 
-RUN systemctl set-default multi-user.target
+RUN systemctl set-default multi-user.target ; systemctl enable crond
 VOLUME [ "/sys/fs/cgroup" ]
 CMD ["/bin/bash", "-c", "exec /sbin/init --log-target=journal 3>&1"]
