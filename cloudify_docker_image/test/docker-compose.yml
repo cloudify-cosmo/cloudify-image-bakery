@@ -1,0 +1,15 @@
+version: '3'
+services:
+  cloudify_img:
+    image: ${IMAGE_NAME}
+    container_name: ${CONTAINER_NAME}
+    tmpfs:
+      - /run
+      - /run/lock
+    security_opt:
+     - seccomp:unconfined
+    cap_add:
+     - SYS_ADMIN
+    volumes:
+     - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    restart: unless-stopped
