@@ -1,0 +1,12 @@
+#!/bin/bash
+echo "Enter docker.service file path:"
+read file_path
+
+if ls $file_path; then
+	mtu_var=$(ip addr sho $(ip ro sho | grep default | awk '{ print $5 }') | grep -oE 'mtu ([0-9]+)' | awk '{ print $2 }')
+	sed -r -i "/.*--mtu.*/! s/(ExecStart=.*)$/\1 --mtu ${mtu_var}/g" $file_path
+	sudo systemctl daemon-reload
+	sudo systemctl restart docker
+else
+	(>&2 echo echo "File ${file_path} does not exist.")
+fi

@@ -1,37 +1,18 @@
 # Installation
 ## Ubuntu:
-1. First run this
-    ```
-    sudo apt install -y docker.io
-    sudo usermod -aG docker your_username
-    ```
+1. First run `./install_ubuntu`
 1. Logout and log back in.
 1. `docker ps` should work now.
 
 ## Centos 7:
-1. First run this
-    ```
-    sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-    sudo yum install -y docker-ce
-    sudo usermod -aG docker your_username
-    sudo systemctl enable docker
-    sudo systemctl start docker
-    ```
+1. First run `./install_centos`
 2. Logout and log back in.
 3. `docker ps` should work now.
 
 ## OpenStack Known issues
 ### Containers don't have any network access
-If the container doesn't have network access, use `ifconfig` and check the mtu for both the host 
-main network adapter and the Docker bridge adapter. In case they are different, use the host main 
-network adapter's mtu size and edit the docker service file with
-```
-# The path also might be at /usr/lib/systemd/system/docker.service
-sudo vi /etc/systemd/system/docker.service
-# At 'ExecStart=' add '--mtu HOST_MTU_SIZE' flag to the end of the line
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-```
+If the container doesn't have network access, run `./centos_mtu_fix`. This will change the docker bridge
+mtu and use the gateway interface's mtu.
 
 # Usage
 - To create the base image, configure the constants and run
