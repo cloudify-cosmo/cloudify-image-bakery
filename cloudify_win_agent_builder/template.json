@@ -4,7 +4,7 @@
         "region": "eu-west-1",
         "source_ami": "ami-0554a258b2d354e3a",
         "instance_type": "m3.medium",
-        "ami_name": "windows2012r2-ami {{timestamp}}",
+        "ami_name": "win_agent_builder-ami {{timestamp}}",
         "user_data_file":"./ec2-userdata.ps1",
         "communicator": "winrm",
         "winrm_username": "Administrator",
