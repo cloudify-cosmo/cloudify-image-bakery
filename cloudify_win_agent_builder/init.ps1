@@ -33,15 +33,6 @@ get_package "https://download.microsoft.com/download/7/9/6/796EF2E4-801B-4FC4-AB
 get_package "http://files.jrsoftware.org/is/5/isetup-5.5.5.exe"
 get_package "https://s3.amazonaws.com/aws-cli/AWSCLI64PY3.msi"
 
-### Temp ###
-    echo "### Checking Installations... ###"
-    python --version
-    git --version
-
-
-    ls
-### Temp ###
-
 
 echo "### Set Administrator password... ###"
-net user Administrator "Cloudify123"
+net user Administrator $password
