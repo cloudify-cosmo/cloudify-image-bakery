@@ -1,4 +1,8 @@
 {
+    "variables": {
+        "password": ""
+    },
+
     "builders": [{
         "type": "amazon-ebs",
         "region": "eu-west-1",
@@ -15,6 +19,7 @@
     "provisioners": [
         {
             "type": "powershell",
+            "environment_vars": "password={{user `password`}}",
             "script": "init.ps1"
         }
     ]

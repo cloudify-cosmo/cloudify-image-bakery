@@ -35,4 +35,4 @@ get_package "https://s3.amazonaws.com/aws-cli/AWSCLI64PY3.msi"
 
 
 echo "### Set Administrator password... ###"
-net user Administrator $password
+net user Administrator $Env:password
