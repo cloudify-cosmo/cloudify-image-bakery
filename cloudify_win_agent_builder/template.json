@@ -6,7 +6,15 @@
     "builders": [{
         "type": "amazon-ebs",
         "region": "eu-west-1",
-        "source_ami": "ami-0554a258b2d354e3a",
+        "source_ami_filter": {
+            "filters": {
+                "virtualization-type": "hvm",
+                "name": "Windows_Server-2012-R2_RTM-English-64Bit-Base-*",
+                "root-device-type": "ebs"
+            },
+            "owners": ["801119661308"],
+            "most_recent": true
+        },
         "instance_type": "m3.medium",
         "ami_name": "win_agent_builder-ami {{timestamp}}",
         "user_data_file":"./ec2-userdata.ps1",
