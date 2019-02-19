@@ -79,13 +79,17 @@ function install_manager
     if [ "$?" -eq "0" ]; then
       echo "Running cfy status.."
       cfy status
-      echo "Running cfy status.."
+      echo "Running deployments list.."
       cfy deployments list
       echo "Running cfy executions list for sanity deployment.."
       cfy executions list -d sanity_deployment
-      if [ -f /var/log/cloudify/mgmtworker/cloudify.management_worker.log ]; then
-        echo "Printing /var/log/cloudify/mgmtworker/cloudify.management_worker.log to console.."
-        cat /var/log/cloudify/mgmtworker/cloudify.management_worker.log
+      if [ -f /var/log/cloudify/mgmtworker/mgmtworker.log ]; then
+        echo "Printing /var/log/cloudify/mgmtworker/mgmtworker.log to console.."
+        cat /var/log/cloudify/mgmtworker/mgmtworker.log
+      fi
+      if [ -f /var/log/cloudify/mgmtworker/logs/sanity.log ]; then
+        echo "Printing /var/log/cloudify/mgmtworker/logs/sanity.log to console.."
+        cat /var/log/cloudify/mgmtworker/logs/sanity.log
       fi
     fi
     echo "bootstrap failed!"
