@@ -19,71 +19,6 @@ DOCKER_RUN_FLAGS="--name ${CONTAINER_NAME} -d -v /sys/fs/cgroup:/sys/fs/cgroup:r
  --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN"
 MANAGER_CONFIG_LOCATION="/etc/cloudify"
 
-function generate_config_yaml()
-{
-    case  $IMAGE_TYPE  in
-        "ALL_IN_ONE")
-            echo  "manager:
-  private_ip: ${CONTAINER_IP}
-  public_ip: ${CONTAINER_IP}
-  set_manager_ip_on_boot: true
-  security:
-    admin_password: admin
-  monitoring_install: &monitoring_install
-    skip_installation: false" > config.yaml
-            IMAGE_PUB_NAME="docker-cfy-manager"
-            declare -a IMAGE_TAGS=( "latest" "cloudify-manager-$VERSION-$PRERELEASE" )
-            ;;
-        "POSTGRESQL")
-            echo  "manager:
-  private_ip: ${CONTAINER_IP}
-  public_ip: ${CONTAINER_IP}
-  set_manager_ip_on_boot: true
-  security:
-    admin_password: admin
-  monitoring_install: &monitoring_install
-    skip_installation: false
-  postgresql_server:
-    enable_remote_connections: true
-    postgres_password: admin
-    ssl_enabled: true
-  services_to_install:
-    - 'database_service'" > config.yaml
-            IMAGE_PUB_NAME="docker-cfy-manager-postgresql"
-            declare -a IMAGE_TAGS=( "latest" "cloudify-manager-postgresql-$VERSION-$PRERELEASE" )
-            ;;
-        "RABBITMQ")
-            echo  "manager:
-  private_ip: ${CONTAINER_IP}
-  public_ip: ${CONTAINER_IP}
-  set_manager_ip_on_boot: true
-  security:
-    admin_password: admin
-  monitoring_install: &monitoring_install
-    skip_installation: false
-  services_to_install:
-    - 'queue_service'" > config.yaml
-            IMAGE_PUB_NAME="docker-cfy-manager-rabbitmq"
-            declare -a IMAGE_TAGS=( "latest" "cloudify-manager-rabbitmq-$VERSION-$PRERELEASE" )
-            ;;
-        "MANAGER_WORKER")
-            echo  "manager:
-  private_ip: ${CONTAINER_IP}
-  public_ip: ${CONTAINER_IP}
-  set_manager_ip_on_boot: true
-  security:
-    admin_password: admin
-  monitoring_install: &monitoring_install
-    skip_installation: false
-  services_to_install:
-    - 'manager_service'" > config.yaml
-            IMAGE_PUB_NAME="docker-cfy-manager-worker"
-            declare -a IMAGE_TAGS=( "latest" "cloudify-manager-worker-$VERSION-$PRERELEASE" )
-            ;;
-        *)
-    esac
-}
-
 function upload_image_to_registry
 {
 	docker login -u="${DOCKER_BUILD_ID}" -p="${DOCKER_BUILD_PASSWORD}"
@@ -116,7 +51,67 @@ echo "Creating container..."
 docker run ${DOCKER_RUN_FLAGS} ${BASE_IMAGE}
 CONTAINER_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME})
 
-generate_config_yaml
+case  $IMAGE_TYPE  in
+    "ALL_IN_ONE")
+        echo  "manager:
+  private_ip: ${CONTAINER_IP}
+  public_ip: ${CONTAINER_IP}
+  set_manager_ip_on_boot: true
+  security:
+    admin_password: admin
+  monitoring_install: &monitoring_install
+    skip_installation: false" > config.yaml
+        IMAGE_PUB_NAME="docker-cfy-manager"
+        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-$VERSION-$PRERELEASE" )
+        ;;
+    "POSTGRESQL")
+        echo  "manager:
+  private_ip: ${CONTAINER_IP}
+  public_ip: ${CONTAINER_IP}
+  set_manager_ip_on_boot: true
+  security:
+    admin_password: admin
+  monitoring_install: &monitoring_install
+    skip_installation: false
+  postgresql_server:
+    enable_remote_connections: true
+    postgres_password: admin
+    ssl_enabled: true
+  services_to_install:
+    - 'database_service'" > config.yaml
+        IMAGE_PUB_NAME="docker-cfy-manager-postgresql"
+        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-postgresql-$VERSION-$PRERELEASE" )
+        ;;
+    "RABBITMQ")
+        echo  "manager:
+  private_ip: ${CONTAINER_IP}
+  public_ip: ${CONTAINER_IP}
+  set_manager_ip_on_boot: true
+  security:
+    admin_password: admin
+  monitoring_install: &monitoring_install
+    skip_installation: false
+  services_to_install:
+    - 'queue_service'" > config.yaml
+        IMAGE_PUB_NAME="docker-cfy-manager-rabbitmq"
+        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-rabbitmq-$VERSION-$PRERELEASE" )
+        ;;
+    "MANAGER_WORKER")
+        echo  "manager:
+  private_ip: ${CONTAINER_IP}
+  public_ip: ${CONTAINER_IP}
+  set_manager_ip_on_boot: true
+  security:
+    admin_password: admin
+  monitoring_install: &monitoring_install
+    skip_installation: false
+  services_to_install:
+    - 'manager_service'" > config.yaml
+        IMAGE_PUB_NAME="docker-cfy-manager-worker"
+        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-worker-$VERSION-$PRERELEASE" )
+        ;;
+    *)
+esac
 
 echo "Installing cfy..."
 docker exec -t $CONTAINER_NAME sh -c "curl $CFY_RPM_URL -o ~/$CFY_RPM &&
