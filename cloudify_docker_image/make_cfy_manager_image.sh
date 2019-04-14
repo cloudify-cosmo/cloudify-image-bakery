@@ -7,16 +7,76 @@ if [ $# -eq 0 ]
     echo "No arguments supplied. Please supply the CFY RPM URL as the first argument."
     exit
 fi
-# RPM URL must be supplied as the first argument
+# argument 1 is RPM URL
+# argument 2 is image-type, one of: all_in_one, postgresql, rabbitmq, manager_worker
 CFY_RPM_URL=$1
+IMAGE_TYPE=$2
 CFY_RPM="cloudify-manager-install.rpm"
 CONTAINER_NAME="cfy-manager"
 BASE_IMAGE="$(docker images | grep latest-centos7-base-image | awk '{print $3}')"
-IMAGE_PUB_NAME="docker-cfy-manager"
-declare -a IMAGE_TAGS=( "latest" "cloudify-manager-$VERSION-$PRERELEASE" )
+
 DOCKER_RUN_FLAGS="--name ${CONTAINER_NAME} -d -v /sys/fs/cgroup:/sys/fs/cgroup:ro --tmpfs /run
  --tmpfs /run/lock --security-opt seccomp:unconfined --cap-add SYS_ADMIN"
 MANAGER_CONFIG_LOCATION="/etc/cloudify"
+
+case  $IMAGE_TYPE  in
+    "ALL_IN_ONE")
+        echo  "manager:
+  private_ip: ${CONTAINER_IP}
+  public_ip: ${CONTAINER_IP}
+  set_manager_ip_on_boot: true
+  security:
+    admin_password: admin
+  monitoring_install: &monitoring_install
+    skip_installation: false" > config.yaml
+        IMAGE_PUB_NAME="docker-cfy-manager"
+        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-$VERSION-$PRERELEASE" )
+        ;;
+    "POSTGRESQL")
+        echo  "manager:
+  private_ip: ${CONTAINER_IP}
+  public_ip: ${CONTAINER_IP}
+  set_manager_ip_on_boot: true
+  security:
+    admin_password: admin
+  monitoring_install: &monitoring_install
+    skip_installation: false
+  services_to_install:
+    - 'database_service'" > config.yaml
+        IMAGE_PUB_NAME="docker-cfy-manager-postgresql"
+        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-postgresql-$VERSION-$PRERELEASE" )
+        ;;
+    "RABBITMQ")
+        echo  "manager:
+  private_ip: ${CONTAINER_IP}
+  public_ip: ${CONTAINER_IP}
+  set_manager_ip_on_boot: true
+  security:
+    admin_password: admin
+  monitoring_install: &monitoring_install
+    skip_installation: false
+  services_to_install:
+    - 'queue_service'" > config.yaml
+        IMAGE_PUB_NAME="docker-cfy-manager-rabbitmq"
+        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-rabbitmq-$VERSION-$PRERELEASE" )
+        ;;
+    "MANAGER_WORKER")
+        echo  "manager:
+  private_ip: ${CONTAINER_IP}
+  public_ip: ${CONTAINER_IP}
+  set_manager_ip_on_boot: true
+  security:
+    admin_password: admin
+  monitoring_install: &monitoring_install
+    skip_installation: false
+  services_to_install:
+    - 'manager_service'" > config.yaml
+        IMAGE_PUB_NAME="docker-cfy-manager-worker"
+        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-worker-$VERSION-$PRERELEASE" )
+        ;;
+    *)
+esac
+
 
 function upload_image_to_registry
 {
@@ -54,16 +114,6 @@ echo "Installing cfy..."
 docker exec -t $CONTAINER_NAME sh -c "curl $CFY_RPM_URL -o ~/$CFY_RPM &&
  rpm -i ~/$CFY_RPM &&
  rm -f ~/$CFY_RPM"
-
-echo "Creating install config file..."
-echo "manager:
-  private_ip: ${CONTAINER_IP}
-  public_ip: ${CONTAINER_IP}
-  set_manager_ip_on_boot: true
-  security:
-    admin_password: admin
-  monitoring_install: &monitoring_install
-    skip_installation: false" > config.yaml
 
 docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
 
