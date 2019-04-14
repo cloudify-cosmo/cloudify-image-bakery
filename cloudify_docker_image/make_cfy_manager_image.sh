@@ -41,6 +41,10 @@ case  $IMAGE_TYPE  in
     admin_password: admin
   monitoring_install: &monitoring_install
     skip_installation: false
+  postgresql_server:
+    enable_remote_connections: true
+    postgres_password: admin
+    ssl_enabled: true
   services_to_install:
     - 'database_service'" > config.yaml
         IMAGE_PUB_NAME="docker-cfy-manager-postgresql"
@@ -77,6 +81,8 @@ case  $IMAGE_TYPE  in
     *)
 esac
 
+echo "The config.yaml:"
+cat config.yaml
 
 function upload_image_to_registry
 {
@@ -118,7 +124,7 @@ docker exec -t $CONTAINER_NAME sh -c "curl $CFY_RPM_URL -o ~/$CFY_RPM &&
 docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
 
 echo "Installing manager..."
-docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install"
+docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install --only-install"
 docker exec -t ${CONTAINER_NAME} sh -c "echo 'docker' > /opt/cfy/image.info"
 
 echo "Saving the image..."
