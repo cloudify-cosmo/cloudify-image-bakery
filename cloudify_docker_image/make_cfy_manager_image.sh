@@ -84,9 +84,6 @@ function generate_config_yaml()
     esac
 }
 
-echo "The config.yaml:"
-cat config.yaml
-
 function upload_image_to_registry
 {
 	docker login -u="${DOCKER_BUILD_ID}" -p="${DOCKER_BUILD_PASSWORD}"
