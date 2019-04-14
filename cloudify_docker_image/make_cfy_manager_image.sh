@@ -53,6 +53,7 @@ CONTAINER_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IP
 
 case  $IMAGE_TYPE  in
     "ALL_IN_ONE")
+    	echo "Setting config.yaml to install ALL_IN_ONE"
         echo  "manager:
   private_ip: ${CONTAINER_IP}
   public_ip: ${CONTAINER_IP}
@@ -65,6 +66,7 @@ case  $IMAGE_TYPE  in
         declare -a IMAGE_TAGS=( "latest" "cloudify-manager-$VERSION-$PRERELEASE" )
         ;;
     "POSTGRESQL")
+    	echo "Setting config.yaml to install POSTGRESQL"
         echo  "manager:
   private_ip: ${CONTAINER_IP}
   public_ip: ${CONTAINER_IP}
@@ -83,6 +85,7 @@ case  $IMAGE_TYPE  in
         declare -a IMAGE_TAGS=( "latest" "cloudify-manager-postgresql-$VERSION-$PRERELEASE" )
         ;;
     "RABBITMQ")
+    	echo "Setting config.yaml to install RABBITMQ"
         echo  "manager:
   private_ip: ${CONTAINER_IP}
   public_ip: ${CONTAINER_IP}
@@ -97,6 +100,7 @@ case  $IMAGE_TYPE  in
         declare -a IMAGE_TAGS=( "latest" "cloudify-manager-rabbitmq-$VERSION-$PRERELEASE" )
         ;;
     "MANAGER_WORKER")
+    	echo "Setting config.yaml to install MANAGER_WORKER"
         echo  "manager:
   private_ip: ${CONTAINER_IP}
   public_ip: ${CONTAINER_IP}
