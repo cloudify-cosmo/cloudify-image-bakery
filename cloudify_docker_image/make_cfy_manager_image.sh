@@ -24,14 +24,14 @@ function upload_image_to_registry
 	docker login -u="${DOCKER_BUILD_ID}" -p="${DOCKER_BUILD_PASSWORD}"
 	for i in "${IMAGE_TAGS[@]}"
 	do
-		docker tag $IMAGE_PUB_NAME ${DOCKER_ORGANIZATION}/${DOCKER_REPO}:$i
+		docker tag $IMAGE_PUB_NAME ${DOCKER_ORGANIZATION}/${DOCKER_REPO}-${IMAGE_DOCKER_HUB_NAME}:$i
 		set +e
-		echo "Removing the ${DOCKER_ORGANIZATION}/${DOCKER_REPO}:$i image from registry"
+		echo "Removing the ${DOCKER_ORGANIZATION}/${DOCKER_REPO}-${IMAGE_DOCKER_HUB_NAME}:$i image from registry"
 		TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'${DOCKER_ID_USER}'", "password": "'${DOCKER_ID_PASSWORD}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-		curl -X DELETE  -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/${DOCKER_ORGANIZATION}/${DOCKER_REPO}/tags/${i}/
+		curl -X DELETE  -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/${DOCKER_ORGANIZATION}/${DOCKER_REPO}-${IMAGE_DOCKER_HUB_NAME}/tags/${i}/
 		set -e
-		echo "Uploading the ${DOCKER_ORGANIZATION}/${DOCKER_REPO}:$i image"
-		docker push ${DOCKER_ORGANIZATION}/${DOCKER_REPO}:$i
+		echo "Uploading the ${DOCKER_ORGANIZATION}/${DOCKER_REPO}-${IMAGE_DOCKER_HUB_NAME}:$i image"
+		docker push ${DOCKER_ORGANIZATION}/${DOCKER_REPO}-${IMAGE_DOCKER_HUB_NAME}:$i
 	done
 
 	docker logout
@@ -51,70 +51,82 @@ echo "Creating container..."
 docker run ${DOCKER_RUN_FLAGS} ${BASE_IMAGE}
 CONTAINER_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME})
 
-case  $IMAGE_TYPE  in
-    "ALL_IN_ONE")
-    	echo "Setting config.yaml to install ALL_IN_ONE"
-        echo  "manager:
+case $IMAGE_TYPE in
+"ALL_IN_ONE")
+  echo "Setting config.yaml to install ALL_IN_ONE"
+  echo "
+manager:
   private_ip: ${CONTAINER_IP}
   public_ip: ${CONTAINER_IP}
   set_manager_ip_on_boot: true
   security:
     admin_password: admin
-  monitoring_install: &monitoring_install
-    skip_installation: false" > config.yaml
-        IMAGE_PUB_NAME="docker-cfy-manager"
-        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-$VERSION-$PRERELEASE" )
-        ;;
-    "POSTGRESQL")
-    	echo "Setting config.yaml to install POSTGRESQL"
-        echo  "manager:
+monitoring_install: &monitoring_install
+  skip_installation: false
+  " > config.yaml
+  IMAGE_PUB_NAME="docker-cfy-manager"
+  IMAGE_DOCKER_HUB_NAME="cloudify-manager"
+  declare -a IMAGE_TAGS=( "latest" "$VERSION-$PRERELEASE" )
+  ;;
+"POSTGRESQL")
+  echo "Setting config.yaml to install POSTGRESQL"
+  echo "
+manager:
   private_ip: ${CONTAINER_IP}
   public_ip: ${CONTAINER_IP}
   set_manager_ip_on_boot: true
   security:
     admin_password: admin
-  monitoring_install: &monitoring_install
-    skip_installation: false
-  postgresql_server:
-    enable_remote_connections: true
-    postgres_password: admin
-    ssl_enabled: true
-  services_to_install:
-    - 'database_service'" > config.yaml
-        IMAGE_PUB_NAME="docker-cfy-manager-postgresql"
-        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-postgresql-$VERSION-$PRERELEASE" )
-        ;;
-    "RABBITMQ")
-    	echo "Setting config.yaml to install RABBITMQ"
-        echo  "manager:
+monitoring_install: &monitoring_install
+  skip_installation: false
+postgresql_server:
+  enable_remote_connections: true
+  postgres_password: admin
+  ssl_enabled: true
+services_to_install:
+  - 'database_service'
+  " > config.yaml
+  IMAGE_PUB_NAME="docker-cfy-manager-postgresql"
+  IMAGE_DOCKER_HUB_NAME="cloudify-manager-postgresql"
+  declare -a IMAGE_TAGS=( "latest" "$VERSION-$PRERELEASE" )
+  ;;
+"RABBITMQ")
+  echo "Setting config.yaml to install RABBITMQ"
+  echo "
+manager:
   private_ip: ${CONTAINER_IP}
   public_ip: ${CONTAINER_IP}
   set_manager_ip_on_boot: true
   security:
     admin_password: admin
-  monitoring_install: &monitoring_install
-    skip_installation: false
-  services_to_install:
-    - 'queue_service'" > config.yaml
-        IMAGE_PUB_NAME="docker-cfy-manager-rabbitmq"
-        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-rabbitmq-$VERSION-$PRERELEASE" )
-        ;;
-    "MANAGER_WORKER")
-    	echo "Setting config.yaml to install MANAGER_WORKER"
-        echo  "manager:
+monitoring_install: &monitoring_install
+  skip_installation: false
+services_to_install:
+  - 'queue_service'
+  " > config.yaml
+  IMAGE_PUB_NAME="docker-cfy-manager-rabbitmq"
+  IMAGE_DOCKER_HUB_NAME="cloudify-manager-rabbitmq"
+  declare -a IMAGE_TAGS=( "latest" "$VERSION-$PRERELEASE" )
+  ;;
+"MANAGER_WORKER")
+  echo "Setting config.yaml to install MANAGER_WORKER"
+  echo "
+manager:
   private_ip: ${CONTAINER_IP}
   public_ip: ${CONTAINER_IP}
   set_manager_ip_on_boot: true
   security:
     admin_password: admin
-  monitoring_install: &monitoring_install
-    skip_installation: false
-  services_to_install:
-    - 'manager_service'" > config.yaml
-        IMAGE_PUB_NAME="docker-cfy-manager-worker"
-        declare -a IMAGE_TAGS=( "latest" "cloudify-manager-worker-$VERSION-$PRERELEASE" )
-        ;;
-    *)
+monitoring_install: &monitoring_install
+  skip_installation: false
+services_to_install:
+  - 'manager_service'
+  " > config.yaml
+  IMAGE_PUB_NAME="docker-cfy-manager-worker"
+  IMAGE_DOCKER_HUB_NAME="cloudify-manager-worker"
+  declare -a IMAGE_TAGS=( "latest" "$VERSION-$PRERELEASE" )
+  ;;
+*)
 esac
 
 echo "Installing cfy..."
@@ -126,13 +138,16 @@ docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
 
 echo "Installing manager..."
 docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install --only-install"
+# If we are not installing a manager we won't have that directory and we need the image.info for the usage-collector
+docker exec -t ${CONTAINER_NAME} sh -c "mkdir -p /opt/cfy/"
 docker exec -t ${CONTAINER_NAME} sh -c "echo 'docker' > /opt/cfy/image.info"
 
 echo "Saving the image..."
 docker commit -m "Install CFY manager" $CONTAINER_NAME $IMAGE_PUB_NAME
+
 for i in "${IMAGE_TAGS[@]}"
 do
-	docker tag $IMAGE_PUB_NAME ${DOCKER_ORGANIZATION}/${DOCKER_REPO}:$i
+	docker tag $IMAGE_PUB_NAME ${DOCKER_ORGANIZATION}/${DOCKER_REPO}-${IMAGE_DOCKER_HUB_NAME}:$i
 done
 
 echo "Removing the used container..."
