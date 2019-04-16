@@ -1,9 +1,5 @@
 #!/bin/bash -e -x
 
-CLOUDIFY_TAG=$1
-INSTALL_RPM_URL=$2
-IMAGE_TYPE=$3
-
 sudo systemctl restart docker.service
 set +e
 if [[ $(docker ps -a -q) ]];then
