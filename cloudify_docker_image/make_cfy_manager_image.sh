@@ -137,7 +137,7 @@ docker exec -t $CONTAINER_NAME sh -c "curl $CFY_RPM_URL -o ~/$CFY_RPM &&
 docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
 
 echo "Installing manager..."
-if [ "$IMAGE_TYPE" == "ALL_IN_ONE"]; then
+if [[ "$IMAGE_TYPE" == "ALL_IN_ONE" ]]; then
     docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install"
 else
     docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install --only-install"
