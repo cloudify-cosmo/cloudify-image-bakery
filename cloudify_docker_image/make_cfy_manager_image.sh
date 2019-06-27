@@ -52,8 +52,8 @@ docker run ${DOCKER_RUN_FLAGS} ${BASE_IMAGE}
 CONTAINER_IP=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' ${CONTAINER_NAME})
 
 case $IMAGE_TYPE in
-"ALL_IN_ONE")
-  echo "Setting config.yaml to install ALL_IN_ONE"
+"manager-aio")
+  echo "Setting config.yaml to install manager-aio"
   echo "
 manager:
   private_ip: ${CONTAINER_IP}
@@ -64,12 +64,12 @@ manager:
 monitoring_install: &monitoring_install
   skip_installation: false
   " > config.yaml
-  IMAGE_PUB_NAME="docker-cfy-manager"
-  IMAGE_DOCKER_HUB_NAME="cloudify-manager"
+  IMAGE_PUB_NAME="docker-cfy-manager-aio"
+  IMAGE_DOCKER_HUB_NAME="cloudify-manager-aio"
   declare -a IMAGE_TAGS=( "latest" "$VERSION-$PRERELEASE" )
   ;;
-"POSTGRESQL")
-  echo "Setting config.yaml to install POSTGRESQL"
+"postgresql")
+  echo "Setting config.yaml to install postgresql"
   echo "
 manager:
   private_ip: ${CONTAINER_IP}
@@ -86,12 +86,12 @@ postgresql_server:
 services_to_install:
   - 'database_service'
   " > config.yaml
-  IMAGE_PUB_NAME="docker-cfy-manager-postgresql"
-  IMAGE_DOCKER_HUB_NAME="cloudify-manager-postgresql"
+  IMAGE_PUB_NAME="docker-cfy-postgresql"
+  IMAGE_DOCKER_HUB_NAME="cloudify-postgresql"
   declare -a IMAGE_TAGS=( "latest" "$VERSION-$PRERELEASE" )
   ;;
-"RABBITMQ")
-  echo "Setting config.yaml to install RABBITMQ"
+"rabbitmq")
+  echo "Setting config.yaml to install rabbitmq"
   echo "
 manager:
   private_ip: ${CONTAINER_IP}
@@ -104,12 +104,12 @@ monitoring_install: &monitoring_install
 services_to_install:
   - 'queue_service'
   " > config.yaml
-  IMAGE_PUB_NAME="docker-cfy-manager-rabbitmq"
-  IMAGE_DOCKER_HUB_NAME="cloudify-manager-rabbitmq"
+  IMAGE_PUB_NAME="docker-cfy-rabbitmq"
+  IMAGE_DOCKER_HUB_NAME="cloudify-rabbitmq"
   declare -a IMAGE_TAGS=( "latest" "$VERSION-$PRERELEASE" )
   ;;
-"MANAGER_WORKER")
-  echo "Setting config.yaml to install MANAGER_WORKER"
+"manager-worker")
+  echo "Setting config.yaml to install manager-worker"
   echo "
 manager:
   private_ip: ${CONTAINER_IP}
@@ -137,7 +137,7 @@ docker exec -t $CONTAINER_NAME sh -c "curl $CFY_RPM_URL -o ~/$CFY_RPM &&
 docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
 
 echo "Installing manager..."
-if [[ "$IMAGE_TYPE" == "ALL_IN_ONE" ]]; then
+if [[ "$IMAGE_TYPE" == "manager-aio" ]]; then
     docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install"
 else
     docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install --only-install"
@@ -147,7 +147,7 @@ docker exec -t ${CONTAINER_NAME} sh -c "mkdir -p /opt/cfy/"
 docker exec -t ${CONTAINER_NAME} sh -c "echo 'docker' > /opt/cfy/image.info"
 
 echo "Saving the image..."
-docker commit -m "Install CFY manager" $CONTAINER_NAME $IMAGE_PUB_NAME
+docker commit -m "Install Cloudify relevant components" $CONTAINER_NAME $IMAGE_PUB_NAME
 
 for i in "${IMAGE_TAGS[@]}"
 do
