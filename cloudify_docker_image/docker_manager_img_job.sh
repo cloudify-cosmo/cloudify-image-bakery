@@ -22,6 +22,6 @@ IMAGE_REPOSITORY="$(docker images | grep cloudify- | awk '{print $1}')"
 if [[ "$IMAGE_TYPE" == "manager-aio" ]]; then
     docker image save -o cloudify-docker-manager-$CLOUDIFY_TAG.tar $IMAGE_REPOSITORY:latest
 else
-    docker image save -o cloudify-${IMAGE_TYPE,,}-$CLOUDIFY_TAG.tar $IMAGE_REPOSITORY:latest
+    docker image save -o cloudify-${IMAGE_TYPE,,}-docker-$CLOUDIFY_TAG.tar $IMAGE_REPOSITORY:latest
 fi
 upload_to_s3 tar
