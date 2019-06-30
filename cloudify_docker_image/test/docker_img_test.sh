@@ -13,6 +13,12 @@ function upload_manager(){
     sleep 5
 }
 
+function put_manager_in_sanity_mode(){
+    echo "Placing manager in sanity"
+    docker-compose exec -T cloudify_img touch /opt/manager/sanity_mode
+    echo "Manager is in sanity mode"
+}
+
 function test_manager(){
     echo "Testing Cloudify manager ..."
     ip_address=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CONTAINER_NAME)
@@ -34,5 +40,6 @@ function remove_manager(){
 
 validate
 upload_manager
+put_manager_in_sanity_mode
 test_manager
 remove_manager
