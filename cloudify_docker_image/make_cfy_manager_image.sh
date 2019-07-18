@@ -136,6 +136,9 @@ docker exec -t $CONTAINER_NAME sh -c "curl $CFY_RPM_URL -o ~/$CFY_RPM &&
 
 docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
 
+# This is required for k8s installations
+docker cp k8s_copy_and_install.sh ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
+
 echo "Installing manager..."
 if [[ "$IMAGE_TYPE" == "manager-aio" ]]; then
     docker exec -t ${CONTAINER_NAME} sh -c "cfy_manager install"
