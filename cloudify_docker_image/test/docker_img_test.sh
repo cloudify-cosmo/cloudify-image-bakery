@@ -27,6 +27,7 @@ function test_manager(){
     docker-compose exec -T cloudify_img cfy_manager sanity-check --private-ip $ip_address
     if [ $? -ne 0 ]; then
         echo "cfy_manager sanity-check failed"
+        docker-compose exec -T cloudify_img cat /var/log/cloudify/manager/cfy_manager.log
         remove_manager
         exit 1
     fi
