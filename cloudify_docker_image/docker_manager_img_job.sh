@@ -18,7 +18,7 @@ set -e
 docker pull $DOCKER_ORGANIZATION/community:latest-centos7-base-image
 bash make_cfy_manager_image.sh $INSTALL_RPM_URL ${IMAGE_TYPE}
 
-IMAGE_REPOSITORY="$(docker images | grep cloudify- | awk '{print $1}')"
+IMAGE_REPOSITORY="$(docker images | grep cloudify- | awk 'NR==1{print $1}')"
 if [[ "$IMAGE_TYPE" == "manager-aio" ]]; then
     docker image save -o cloudify-docker-manager-$CLOUDIFY_TAG.tar $IMAGE_REPOSITORY:latest
 else
