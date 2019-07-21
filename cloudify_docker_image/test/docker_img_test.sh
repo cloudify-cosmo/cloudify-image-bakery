@@ -16,7 +16,10 @@ function upload_manager(){
 function put_manager_in_sanity_mode(){
     echo "Placing manager in sanity"
     docker-compose exec -T cloudify_img touch /opt/manager/sanity_mode
-    echo "Manager is in sanity mode"
+    echo "Restarting rest service and waiting it to come back"
+    docker-compose exec -T systemctl restart cloudify-restservice
+    sleep 15s
+    echo "Manager back and in sanity mode"
 }
 
 function test_manager(){
