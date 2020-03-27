@@ -37,7 +37,7 @@ function install_rpm
   curl ${INSTALL_RPM_URL} -o ${INSTALL_RPM} -s
 
   echo "Installing RPM..."
-  sudo rpm -i ${INSTALL_RPM}
+  sudo yum install -y ${INSTALL_RPM}
 
   rm ${INSTALL_RPM}
 }
@@ -95,7 +95,7 @@ function install_manager
     echo "bootstrap failed!"
     exit 1
   fi
-  
+
   sudo sh -c "echo '${PROVIDER}' > /opt/cfy/image.info"
   set -e
 }

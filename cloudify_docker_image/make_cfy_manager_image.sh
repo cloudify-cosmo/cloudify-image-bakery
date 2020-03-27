@@ -131,7 +131,7 @@ esac
 
 echo "Installing cfy..."
 docker exec -t $CONTAINER_NAME sh -c "curl $CFY_RPM_URL -o ~/$CFY_RPM &&
- rpm -i ~/$CFY_RPM &&
+ yum install -y ~/$CFY_RPM &&
  rm -f ~/$CFY_RPM"
 
 docker cp config.yaml ${CONTAINER_NAME}:${MANAGER_CONFIG_LOCATION}
