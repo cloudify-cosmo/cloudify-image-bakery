@@ -2,19 +2,23 @@
 set -e
 
 # Clean up folders we used
-if [[ "${PERFORM_CLEANUP}" == "true" ]]; then
-  echo "Cleaning up manager build and tmp folders."
-  sudo rm -rf /tmp/* ~/cfy ~/cloudify
+if [[ "${IGNORE_CLEANUP}" == "true" ]]; then
+     echo "Ignore Clean Up..."
 else
-  echo "Skipping cleanup of build and tmp folders."
-fi
+  if [[ "${PERFORM_CLEANUP}" == "true" ]]; then
+    echo "Cleaning up manager build and tmp folders."
+    sudo rm -rf /tmp/* ~/cfy ~/cloudify
+  else
+    echo "Skipping cleanup of build and tmp folders."
+  fi
 
-# Clean up yum cache directory
-sudo yum clean all
+  # Clean up yum cache directory
+  sudo yum clean all
 
-# Clean up any .ssh dirs
-for dir in $(cat /etc/passwd | cut -d: -f6 | sort | uniq); do
-  for file in {authorized_keys,known_hosts,id_rsa,id_rsa.pub}; do
-    sudo rm ${dir}/.ssh/${file} 2>/dev/null && echo "Cleaned ${file} from ${dir}/.ssh" || echo -n  # Pass
+  # Clean up any .ssh dirs
+  for dir in $(cat /etc/passwd | cut -d: -f6 | sort | uniq); do
+    for file in {authorized_keys,known_hosts,id_rsa,id_rsa.pub}; do
+      sudo rm ${dir}/.ssh/${file} 2>/dev/null && echo "Cleaned ${file} from ${dir}/.ssh" || echo -n  # Pass
+    done
   done
-done
+fi

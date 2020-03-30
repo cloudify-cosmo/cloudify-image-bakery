@@ -25,6 +25,7 @@
     "cloudify_manager_password": "admin",
     "cloudify_install_rpm_url": "CLOUDIFY INSTALL RPM URL NOT SET",
     "cloudify_edition": "CLOUDIFY EDITION NOT SET",
+    "cloudify_install_rpm_only": "false",
     "perform_cleanup": "true",
     "image_name": "cloudify-manager",
     "install_skip_validation": "false",
@@ -78,6 +79,7 @@
       "environment_vars": [
         "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
         "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
+        "CLOUDIFY_INSTALL_RPM_ONLY={{user `cloudify_install_rpm_only`}}",,
         "INSTALL_SKIP_VALIDATION={{user `install_skip_validation`}}",
         "SET_ADMIN_PWD={{user `set_admin_pwd`}}",
         "SET_ADMIN_PWD_URL={{user `set_admin_pwd_url`}}",
@@ -89,7 +91,8 @@
     {
       "type": "shell",
       "environment_vars": [
-        "PERFORM_CLEANUP={{user `perform_cleanup`}}"
+        "PERFORM_CLEANUP={{user `perform_cleanup`}}",
+        "IGNORE_CLEANUP={{user `cloudify_install_rpm_only`}}"
       ],
       "script": "provision/cleanup"
     }

@@ -108,16 +108,21 @@ function set_admin_password
   bash set_admin_password.sh
 }
 
-
-if [[ "${SET_ADMIN_PWD}" != "true" ]]; then
-    os_configure
-    install_rpm
-fi
-generate_keys
-create_config
-if [[ "${SET_ADMIN_PWD}" != "true" ]]; then
-    install_manager
-fi
-if [[ "${SET_ADMIN_PWD}" == "true" ]]; then
-    set_admin_password
+if [[ "${CLOUDIFY_INSTALL_RPM_ONLY}" == "true" ]]; then
+      echo "Configuring OS and Installing Manager rpm..."
+      os_configure
+      install_rpm
+else
+  if [[ "${SET_ADMIN_PWD}" != "true" ]]; then
+      os_configure
+      install_rpm
+  fi
+  generate_keys
+  create_config
+  if [[ "${SET_ADMIN_PWD}" != "true" ]]; then
+      install_manager
+  fi
+  if [[ "${SET_ADMIN_PWD}" == "true" ]]; then
+      set_admin_password
+  fi
 fi
