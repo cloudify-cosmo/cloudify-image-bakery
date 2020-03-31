@@ -79,7 +79,7 @@
       "environment_vars": [
         "CLOUDIFY_MANAGER_USERNAME={{user `cloudify_manager_username`}}",
         "CLOUDIFY_MANAGER_PASSWORD={{user `cloudify_manager_password`}}",
-        "CLOUDIFY_INSTALL_RPM_ONLY={{user `cloudify_install_rpm_only`}}",,
+        "CLOUDIFY_INSTALL_RPM_ONLY={{user `cloudify_install_rpm_only`}}",
         "INSTALL_SKIP_VALIDATION={{user `install_skip_validation`}}",
         "SET_ADMIN_PWD={{user `set_admin_pwd`}}",
         "SET_ADMIN_PWD_URL={{user `set_admin_pwd_url`}}",
