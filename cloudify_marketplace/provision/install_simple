@@ -8,8 +8,8 @@ CONFIG_FILE_PATH="/etc/cloudify/config.yaml"
 function os_configure
 {
   # disable selinux
-  sudo setenforce Permissive
-  sudo sed -ri 's/SELINUX=.+/SELINUX=Permissive/' /etc/selinux/config
+  sudo setenforce 0
+  sudo sed -ri 's/SELINUX=.+/SELINUX=Disabled/' /etc/selinux/config
 
   # Set hostname
   sudo hostnamectl set-hostname cloudify
