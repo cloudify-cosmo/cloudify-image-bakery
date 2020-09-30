@@ -24,4 +24,3 @@ if [[ "$IMAGE_TYPE" == "manager-aio" ]]; then
 else
     docker image save -o cloudify-${IMAGE_TYPE,,}-docker-$CLOUDIFY_TAG.tar $IMAGE_REPOSITORY:latest
 fi
-upload_to_s3 tar
