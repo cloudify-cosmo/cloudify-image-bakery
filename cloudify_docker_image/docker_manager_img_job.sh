@@ -18,4 +18,4 @@ set -e
 docker pull $DOCKER_ORGANIZATION/community:latest-centos7-base-image
 bash make_cfy_manager_image.sh $INSTALL_RPM_URL ${IMAGE_TYPE}
 
-docker image save -o cloudify-docker-manager-$CLOUDIFY_TAG.tar cloudify-manager-aio:latest
+docker image save -o cloudify-manager-aio-docker-$CLOUDIFY_TAG.tar cloudify-manager-aio:latest
