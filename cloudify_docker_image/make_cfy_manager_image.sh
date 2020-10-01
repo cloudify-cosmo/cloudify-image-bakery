@@ -152,7 +152,7 @@ docker exec -t ${CONTAINER_NAME} sh -c "echo 'docker' > /opt/cfy/image.info"
 echo "Saving the image..."
 docker commit -m "Install Cloudify relevant components" $CONTAINER_NAME $IMAGE_PUB_NAME
 
-docker tag $IMAGE_PUB_NAME ${DOCKER_ORGANIZATION}/${DOCKER_REPO}-${IMAGE_DOCKER_HUB_NAME}:latest
+docker tag $IMAGE_PUB_NAME ${IMAGE_DOCKER_HUB_NAME}:latest
 
 echo "Removing the used container..."
 docker stop $CONTAINER_NAME
